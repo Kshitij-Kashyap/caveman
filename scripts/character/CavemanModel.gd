@@ -1,6 +1,6 @@
 ## CavemanModel.gd
 ## 3D Character model supporting Rafael's Poly Pizza Rigged Character (52 bones,
-## vertex skinning, custom walk/idle animations, and shader customization)
+## vertex skinning, natural side-hanging idle & walk gait animations, and shader customization)
 ## with fallback to the stylized low-poly blocky caveman aesthetic.
 
 class_name CavemanModel
@@ -224,23 +224,73 @@ func _setup_character_animations(ap: AnimationPlayer, skel: Skeleton3D) -> void:
 		lib = AnimationLibrary.new()
 		ap.add_animation_library("", lib)
 
-	# 1. IDLE ANIMATION (Looping subtle breathing & gentle micro-sway)
+	# Extract bone indices and rests
+	var b_l_arm := skel.find_bone("mixamorig_LeftArm")
+	var b_r_arm := skel.find_bone("mixamorig_RightArm")
+	var b_l_fa  := skel.find_bone("mixamorig_LeftForeArm")
+	var b_r_fa  := skel.find_bone("mixamorig_RightForeArm")
+	var b_spine1 := skel.find_bone("mixamorig_Spine1")
+	var b_head  := skel.find_bone("mixamorig_Head")
+	var b_hips  := skel.find_bone("mixamorig_Hips")
+	var b_l_leg := skel.find_bone("mixamorig_LeftUpLeg")
+	var b_r_leg := skel.find_bone("mixamorig_RightUpLeg")
+	var b_l_knee := skel.find_bone("mixamorig_LeftLeg")
+	var b_r_knee := skel.find_bone("mixamorig_RightLeg")
+
+	var rest_la := skel.get_bone_rest(b_l_arm) if b_l_arm >= 0 else Transform3D()
+	var rest_ra := skel.get_bone_rest(b_r_arm) if b_r_arm >= 0 else Transform3D()
+	var rest_l_fa := skel.get_bone_rest(b_l_fa) if b_l_fa >= 0 else Transform3D()
+	var rest_r_fa := skel.get_bone_rest(b_r_fa) if b_r_fa >= 0 else Transform3D()
+	var rest_spine1 := skel.get_bone_rest(b_spine1) if b_spine1 >= 0 else Transform3D()
+	var rest_head := skel.get_bone_rest(b_head) if b_head >= 0 else Transform3D()
+	var rest_hips := skel.get_bone_rest(b_hips) if b_hips >= 0 else Transform3D()
+	var rest_l_leg := skel.get_bone_rest(b_l_leg) if b_l_leg >= 0 else Transform3D()
+	var rest_r_leg := skel.get_bone_rest(b_r_leg) if b_r_leg >= 0 else Transform3D()
+	var rest_l_knee := skel.get_bone_rest(b_l_knee) if b_l_knee >= 0 else Transform3D()
+	var rest_r_knee := skel.get_bone_rest(b_r_knee) if b_r_knee >= 0 else Transform3D()
+
+	# Downward resting arm rotations (breaks Mixamo 90-deg T-pose down to natural side-hanging pose)
+	var delta_l_idle := Vector3(deg_to_rad(85), deg_to_rad(-5), deg_to_rad(-40))
+	var delta_r_idle := Vector3(deg_to_rad(85), deg_to_rad(5), deg_to_rad(40))
+
+	var q_l_idle := rest_la.basis.get_rotation_quaternion() * Basis.from_euler(delta_l_idle).get_rotation_quaternion()
+	var q_r_idle := rest_ra.basis.get_rotation_quaternion() * Basis.from_euler(delta_r_idle).get_rotation_quaternion()
+	var q_l_fa_idle := rest_l_fa.basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(15))
+	var q_r_fa_idle := rest_r_fa.basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(15))
+
+	var q_spine1 := rest_spine1.basis.get_rotation_quaternion()
+	var q_head := rest_head.basis.get_rotation_quaternion()
+	var hips_rest_pos := rest_hips.origin
+	var q_l_leg := rest_l_leg.basis.get_rotation_quaternion()
+	var q_r_leg := rest_r_leg.basis.get_rotation_quaternion()
+	var q_l_knee := rest_l_knee.basis.get_rotation_quaternion()
+	var q_r_knee := rest_r_knee.basis.get_rotation_quaternion()
+
+	# -------------------------------------------------------------
+	# 1. IDLE ANIMATION (Looping natural relaxed humanoid stance, breathing & micro-sway)
+	# -------------------------------------------------------------
 	var anim_idle := Animation.new()
 	anim_idle.length = 2.4
 	anim_idle.loop_mode = Animation.LOOP_LINEAR
 
-	var b_spine1 := skel.find_bone("mixamorig_Spine1")
+	# Hips subtle breathing lift
+	if b_hips >= 0:
+		var t_hb := anim_idle.add_track(Animation.TYPE_POSITION_3D)
+		anim_idle.track_set_path(t_hb, "RootNode/Skeleton3D:mixamorig_Hips")
+		anim_idle.position_track_insert_key(t_hb, 0.0, hips_rest_pos)
+		anim_idle.position_track_insert_key(t_hb, 1.2, hips_rest_pos + Vector3(0.0, 0.02, 0.0))
+		anim_idle.position_track_insert_key(t_hb, 2.4, hips_rest_pos)
+
+	# Spine breathing expansion
 	if b_spine1 >= 0:
-		var q_spine1 := skel.get_bone_rest(b_spine1).basis.get_rotation_quaternion()
 		var t_sp := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
 		anim_idle.track_set_path(t_sp, "RootNode/Skeleton3D:mixamorig_Spine1")
 		anim_idle.rotation_track_insert_key(t_sp, 0.0, q_spine1)
 		anim_idle.rotation_track_insert_key(t_sp, 1.2, q_spine1 * Quaternion(Vector3.RIGHT, 0.035))
 		anim_idle.rotation_track_insert_key(t_sp, 2.4, q_spine1)
 
-	var b_head := skel.find_bone("mixamorig_Head")
+	# Head subtle micro-drift
 	if b_head >= 0:
-		var q_head := skel.get_bone_rest(b_head).basis.get_rotation_quaternion()
 		var t_hd := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
 		anim_idle.track_set_path(t_hd, "RootNode/Skeleton3D:mixamorig_Head")
 		anim_idle.rotation_track_insert_key(t_hd, 0.0, q_head)
@@ -248,105 +298,146 @@ func _setup_character_animations(ap: AnimationPlayer, skel: Skeleton3D) -> void:
 		anim_idle.rotation_track_insert_key(t_hd, 1.6, q_head * Quaternion(Vector3.UP, -0.04))
 		anim_idle.rotation_track_insert_key(t_hd, 2.4, q_head)
 
-	var b_l_arm := skel.find_bone("mixamorig_LeftArm")
-	var b_r_arm := skel.find_bone("mixamorig_RightArm")
+	# Arms hanging naturally at sides (NOT T-pose!)
 	if b_l_arm >= 0 and b_r_arm >= 0:
-		var q_l_arm := skel.get_bone_rest(b_l_arm).basis.get_rotation_quaternion()
-		var q_r_arm := skel.get_bone_rest(b_r_arm).basis.get_rotation_quaternion()
-
 		var t_la := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
 		anim_idle.track_set_path(t_la, "RootNode/Skeleton3D:mixamorig_LeftArm")
-		anim_idle.rotation_track_insert_key(t_la, 0.0, q_l_arm)
-		anim_idle.rotation_track_insert_key(t_la, 1.2, q_l_arm * Quaternion(Vector3.FORWARD, 0.02))
-		anim_idle.rotation_track_insert_key(t_la, 2.4, q_l_arm)
+		anim_idle.rotation_track_insert_key(t_la, 0.0, q_l_idle)
+		anim_idle.rotation_track_insert_key(t_la, 1.2, q_l_idle * Quaternion(Vector3.FORWARD, 0.03))
+		anim_idle.rotation_track_insert_key(t_la, 2.4, q_l_idle)
 
 		var t_ra := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
 		anim_idle.track_set_path(t_ra, "RootNode/Skeleton3D:mixamorig_RightArm")
-		anim_idle.rotation_track_insert_key(t_ra, 0.0, q_r_arm)
-		anim_idle.rotation_track_insert_key(t_ra, 1.2, q_r_arm * Quaternion(Vector3.FORWARD, -0.02))
-		anim_idle.rotation_track_insert_key(t_ra, 2.4, q_r_arm)
+		anim_idle.rotation_track_insert_key(t_ra, 0.0, q_r_idle)
+		anim_idle.rotation_track_insert_key(t_ra, 1.2, q_r_idle * Quaternion(Vector3.FORWARD, -0.03))
+		anim_idle.rotation_track_insert_key(t_ra, 2.4, q_r_idle)
+
+	# Forearms slight inward elbow bend
+	if b_l_fa >= 0 and b_r_fa >= 0:
+		var t_lfa := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
+		anim_idle.track_set_path(t_lfa, "RootNode/Skeleton3D:mixamorig_LeftForeArm")
+		anim_idle.rotation_track_insert_key(t_lfa, 0.0, q_l_fa_idle)
+		anim_idle.rotation_track_insert_key(t_lfa, 1.2, q_l_fa_idle * Quaternion(Vector3.RIGHT, 0.02))
+		anim_idle.rotation_track_insert_key(t_lfa, 2.4, q_l_fa_idle)
+
+		var t_rfa := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
+		anim_idle.track_set_path(t_rfa, "RootNode/Skeleton3D:mixamorig_RightForeArm")
+		anim_idle.rotation_track_insert_key(t_rfa, 0.0, q_r_fa_idle)
+		anim_idle.rotation_track_insert_key(t_rfa, 1.2, q_r_fa_idle * Quaternion(Vector3.RIGHT, 0.02))
+		anim_idle.rotation_track_insert_key(t_rfa, 2.4, q_r_fa_idle)
+
+	# Legs in relaxed standing pose
+	if b_l_leg >= 0 and b_r_leg >= 0:
+		var t_ll := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
+		anim_idle.track_set_path(t_ll, "RootNode/Skeleton3D:mixamorig_LeftUpLeg")
+		anim_idle.rotation_track_insert_key(t_ll, 0.0, q_l_leg)
+		anim_idle.rotation_track_insert_key(t_ll, 2.4, q_l_leg)
+
+		var t_rl := anim_idle.add_track(Animation.TYPE_ROTATION_3D)
+		anim_idle.track_set_path(t_rl, "RootNode/Skeleton3D:mixamorig_RightUpLeg")
+		anim_idle.rotation_track_insert_key(t_rl, 0.0, q_r_leg)
+		anim_idle.rotation_track_insert_key(t_rl, 2.4, q_r_leg)
 
 	lib.add_animation("idle", anim_idle)
 
-	# 2. WALK ANIMATION (Looping rhythmic humanoid gait with knee flexion & arm swing)
+	# -------------------------------------------------------------
+	# 2. WALK ANIMATION (Looping rhythmic humanoid gait with knee flexion & natural arm swings)
+	# -------------------------------------------------------------
 	var anim_walk := Animation.new()
 	anim_walk.length = 1.0
 	anim_walk.loop_mode = Animation.LOOP_LINEAR
 
-	var b_l_leg := skel.find_bone("mixamorig_LeftUpLeg")
-	var b_r_leg := skel.find_bone("mixamorig_RightUpLeg")
+	# Hips step bobbing & lateral weight transfer
+	if b_hips >= 0:
+		var t_hw := anim_walk.add_track(Animation.TYPE_POSITION_3D)
+		anim_walk.track_set_path(t_hw, "RootNode/Skeleton3D:mixamorig_Hips")
+		anim_walk.position_track_insert_key(t_hw, 0.0, hips_rest_pos)
+		anim_walk.position_track_insert_key(t_hw, 0.25, hips_rest_pos - Vector3(0.02, 0.07, 0.0))
+		anim_walk.position_track_insert_key(t_hw, 0.50, hips_rest_pos)
+		anim_walk.position_track_insert_key(t_hw, 0.75, hips_rest_pos - Vector3(-0.02, 0.07, 0.0))
+		anim_walk.position_track_insert_key(t_hw, 1.0, hips_rest_pos)
+
+	# Spine counter-twist
+	if b_spine1 >= 0:
+		var t_sp_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_sp_w, "RootNode/Skeleton3D:mixamorig_Spine1")
+		anim_walk.rotation_track_insert_key(t_sp_w, 0.0, q_spine1)
+		anim_walk.rotation_track_insert_key(t_sp_w, 0.25, q_spine1 * Quaternion(Vector3.UP, 0.06))
+		anim_walk.rotation_track_insert_key(t_sp_w, 0.50, q_spine1)
+		anim_walk.rotation_track_insert_key(t_sp_w, 0.75, q_spine1 * Quaternion(Vector3.UP, -0.06))
+		anim_walk.rotation_track_insert_key(t_sp_w, 1.0, q_spine1)
+
+	# Legs strides
 	if b_l_leg >= 0 and b_r_leg >= 0:
-		var q_l_leg := skel.get_bone_rest(b_l_leg).basis.get_rotation_quaternion()
-		var q_r_leg := skel.get_bone_rest(b_r_leg).basis.get_rotation_quaternion()
+		var t_ll_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_ll_w, "RootNode/Skeleton3D:mixamorig_LeftUpLeg")
+		anim_walk.rotation_track_insert_key(t_ll_w, 0.0, q_l_leg)
+		anim_walk.rotation_track_insert_key(t_ll_w, 0.25, q_l_leg * Quaternion(Vector3.RIGHT, 0.50))
+		anim_walk.rotation_track_insert_key(t_ll_w, 0.50, q_l_leg)
+		anim_walk.rotation_track_insert_key(t_ll_w, 0.75, q_l_leg * Quaternion(Vector3.RIGHT, -0.40))
+		anim_walk.rotation_track_insert_key(t_ll_w, 1.0, q_l_leg)
 
-		var t_ll := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
-		anim_walk.track_set_path(t_ll, "RootNode/Skeleton3D:mixamorig_LeftUpLeg")
-		anim_walk.rotation_track_insert_key(t_ll, 0.0, q_l_leg)
-		anim_walk.rotation_track_insert_key(t_ll, 0.25, q_l_leg * Quaternion(Vector3.RIGHT, 0.45))
-		anim_walk.rotation_track_insert_key(t_ll, 0.50, q_l_leg)
-		anim_walk.rotation_track_insert_key(t_ll, 0.75, q_l_leg * Quaternion(Vector3.RIGHT, -0.35))
-		anim_walk.rotation_track_insert_key(t_ll, 1.0, q_l_leg)
+		var t_rl_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_rl_w, "RootNode/Skeleton3D:mixamorig_RightUpLeg")
+		anim_walk.rotation_track_insert_key(t_rl_w, 0.0, q_r_leg)
+		anim_walk.rotation_track_insert_key(t_rl_w, 0.25, q_r_leg * Quaternion(Vector3.RIGHT, -0.40))
+		anim_walk.rotation_track_insert_key(t_rl_w, 0.50, q_r_leg)
+		anim_walk.rotation_track_insert_key(t_rl_w, 0.75, q_r_leg * Quaternion(Vector3.RIGHT, 0.50))
+		anim_walk.rotation_track_insert_key(t_rl_w, 1.0, q_r_leg)
 
-		var t_rl := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
-		anim_walk.track_set_path(t_rl, "RootNode/Skeleton3D:mixamorig_RightUpLeg")
-		anim_walk.rotation_track_insert_key(t_rl, 0.0, q_r_leg)
-		anim_walk.rotation_track_insert_key(t_rl, 0.25, q_r_leg * Quaternion(Vector3.RIGHT, -0.35))
-		anim_walk.rotation_track_insert_key(t_rl, 0.50, q_r_leg)
-		anim_walk.rotation_track_insert_key(t_rl, 0.75, q_r_leg * Quaternion(Vector3.RIGHT, 0.45))
-		anim_walk.rotation_track_insert_key(t_rl, 1.0, q_r_leg)
-
-	var b_l_knee := skel.find_bone("mixamorig_LeftLeg")
-	var b_r_knee := skel.find_bone("mixamorig_RightLeg")
+	# Knees flexion
 	if b_l_knee >= 0 and b_r_knee >= 0:
-		var q_l_knee := skel.get_bone_rest(b_l_knee).basis.get_rotation_quaternion()
-		var q_r_knee := skel.get_bone_rest(b_r_knee).basis.get_rotation_quaternion()
+		var t_lk_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_lk_w, "RootNode/Skeleton3D:mixamorig_LeftLeg")
+		anim_walk.rotation_track_insert_key(t_lk_w, 0.0, q_l_knee)
+		anim_walk.rotation_track_insert_key(t_lk_w, 0.25, q_l_knee)
+		anim_walk.rotation_track_insert_key(t_lk_w, 0.50, q_l_knee * Quaternion(Vector3.RIGHT, 0.20))
+		anim_walk.rotation_track_insert_key(t_lk_w, 0.75, q_l_knee * Quaternion(Vector3.RIGHT, 0.55))
+		anim_walk.rotation_track_insert_key(t_lk_w, 1.0, q_l_knee)
 
-		var t_lk := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
-		anim_walk.track_set_path(t_lk, "RootNode/Skeleton3D:mixamorig_LeftLeg")
-		anim_walk.rotation_track_insert_key(t_lk, 0.0, q_l_knee)
-		anim_walk.rotation_track_insert_key(t_lk, 0.25, q_l_knee)
-		anim_walk.rotation_track_insert_key(t_lk, 0.50, q_l_knee)
-		anim_walk.rotation_track_insert_key(t_lk, 0.75, q_l_knee * Quaternion(Vector3.RIGHT, 0.45))
-		anim_walk.rotation_track_insert_key(t_lk, 1.0, q_l_knee)
+		var t_rk_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_rk_w, "RootNode/Skeleton3D:mixamorig_RightLeg")
+		anim_walk.rotation_track_insert_key(t_rk_w, 0.0, q_r_knee)
+		anim_walk.rotation_track_insert_key(t_rk_w, 0.25, q_r_knee * Quaternion(Vector3.RIGHT, 0.55))
+		anim_walk.rotation_track_insert_key(t_rk_w, 0.50, q_r_knee * Quaternion(Vector3.RIGHT, 0.20))
+		anim_walk.rotation_track_insert_key(t_rk_w, 0.75, q_r_knee)
+		anim_walk.rotation_track_insert_key(t_rk_w, 1.0, q_r_knee)
 
-		var t_rk := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
-		anim_walk.track_set_path(t_rk, "RootNode/Skeleton3D:mixamorig_RightLeg")
-		anim_walk.rotation_track_insert_key(t_rk, 0.0, q_r_knee)
-		anim_walk.rotation_track_insert_key(t_rk, 0.25, q_r_knee * Quaternion(Vector3.RIGHT, 0.45))
-		anim_walk.rotation_track_insert_key(t_rk, 0.50, q_r_knee)
-		anim_walk.rotation_track_insert_key(t_rk, 0.75, q_r_knee)
-		anim_walk.rotation_track_insert_key(t_rk, 1.0, q_r_knee)
-
+	# Arms swinging forward and backward from downward resting position (opposite to legs!)
 	if b_l_arm >= 0 and b_r_arm >= 0:
-		var q_l_arm := skel.get_bone_rest(b_l_arm).basis.get_rotation_quaternion()
-		var q_r_arm := skel.get_bone_rest(b_r_arm).basis.get_rotation_quaternion()
-
 		var t_la_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
 		anim_walk.track_set_path(t_la_w, "RootNode/Skeleton3D:mixamorig_LeftArm")
-		anim_walk.rotation_track_insert_key(t_la_w, 0.0, q_l_arm)
-		anim_walk.rotation_track_insert_key(t_la_w, 0.25, q_l_arm * Quaternion(Vector3.RIGHT, -0.35))
-		anim_walk.rotation_track_insert_key(t_la_w, 0.50, q_l_arm)
-		anim_walk.rotation_track_insert_key(t_la_w, 0.75, q_l_arm * Quaternion(Vector3.RIGHT, 0.35))
-		anim_walk.rotation_track_insert_key(t_la_w, 1.0, q_l_arm)
+		anim_walk.rotation_track_insert_key(t_la_w, 0.0, q_l_idle)
+		anim_walk.rotation_track_insert_key(t_la_w, 0.25, q_l_idle * Quaternion(Vector3.FORWARD, deg_to_rad(-22)))
+		anim_walk.rotation_track_insert_key(t_la_w, 0.50, q_l_idle)
+		anim_walk.rotation_track_insert_key(t_la_w, 0.75, q_l_idle * Quaternion(Vector3.FORWARD, deg_to_rad(28)))
+		anim_walk.rotation_track_insert_key(t_la_w, 1.0, q_l_idle)
 
 		var t_ra_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
 		anim_walk.track_set_path(t_ra_w, "RootNode/Skeleton3D:mixamorig_RightArm")
-		anim_walk.rotation_track_insert_key(t_ra_w, 0.0, q_r_arm)
-		anim_walk.rotation_track_insert_key(t_ra_w, 0.25, q_r_arm * Quaternion(Vector3.RIGHT, 0.35))
-		anim_walk.rotation_track_insert_key(t_ra_w, 0.50, q_r_arm)
-		anim_walk.rotation_track_insert_key(t_ra_w, 0.75, q_r_arm * Quaternion(Vector3.RIGHT, -0.35))
-		anim_walk.rotation_track_insert_key(t_ra_w, 1.0, q_r_arm)
+		anim_walk.rotation_track_insert_key(t_ra_w, 0.0, q_r_idle)
+		anim_walk.rotation_track_insert_key(t_ra_w, 0.25, q_r_idle * Quaternion(Vector3.FORWARD, deg_to_rad(-28)))
+		anim_walk.rotation_track_insert_key(t_ra_w, 0.50, q_r_idle)
+		anim_walk.rotation_track_insert_key(t_ra_w, 0.75, q_r_idle * Quaternion(Vector3.FORWARD, deg_to_rad(22)))
+		anim_walk.rotation_track_insert_key(t_ra_w, 1.0, q_r_idle)
 
-	var b_hips := skel.find_bone("mixamorig_Hips")
-	if b_hips >= 0:
-		var hips_rest_pos := skel.get_bone_rest(b_hips).origin
-		var t_hb := anim_walk.add_track(Animation.TYPE_POSITION_3D)
-		anim_walk.track_set_path(t_hb, "RootNode/Skeleton3D:mixamorig_Hips")
-		anim_walk.position_track_insert_key(t_hb, 0.0, hips_rest_pos)
-		anim_walk.position_track_insert_key(t_hb, 0.25, hips_rest_pos - Vector3(0, 0.08, 0))
-		anim_walk.position_track_insert_key(t_hb, 0.50, hips_rest_pos)
-		anim_walk.position_track_insert_key(t_hb, 0.75, hips_rest_pos - Vector3(0, 0.08, 0))
-		anim_walk.position_track_insert_key(t_hb, 1.0, hips_rest_pos)
+	# Forearms natural elbow flexion on forward swing
+	if b_l_fa >= 0 and b_r_fa >= 0:
+		var t_lfa_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_lfa_w, "RootNode/Skeleton3D:mixamorig_LeftForeArm")
+		anim_walk.rotation_track_insert_key(t_lfa_w, 0.0, q_l_fa_idle)
+		anim_walk.rotation_track_insert_key(t_lfa_w, 0.25, q_l_fa_idle * Quaternion(Vector3.RIGHT, deg_to_rad(-8)))
+		anim_walk.rotation_track_insert_key(t_lfa_w, 0.50, q_l_fa_idle)
+		anim_walk.rotation_track_insert_key(t_lfa_w, 0.75, q_l_fa_idle * Quaternion(Vector3.RIGHT, deg_to_rad(20)))
+		anim_walk.rotation_track_insert_key(t_lfa_w, 1.0, q_l_fa_idle)
+
+		var t_rfa_w := anim_walk.add_track(Animation.TYPE_ROTATION_3D)
+		anim_walk.track_set_path(t_rfa_w, "RootNode/Skeleton3D:mixamorig_RightForeArm")
+		anim_walk.rotation_track_insert_key(t_rfa_w, 0.0, q_r_fa_idle)
+		anim_walk.rotation_track_insert_key(t_rfa_w, 0.25, q_r_fa_idle * Quaternion(Vector3.RIGHT, deg_to_rad(20)))
+		anim_walk.rotation_track_insert_key(t_rfa_w, 0.50, q_r_fa_idle)
+		anim_walk.rotation_track_insert_key(t_rfa_w, 0.75, q_r_fa_idle * Quaternion(Vector3.RIGHT, deg_to_rad(-8)))
+		anim_walk.rotation_track_insert_key(t_rfa_w, 1.0, q_r_fa_idle)
 
 	lib.add_animation("walk", anim_walk)
 
@@ -495,7 +586,7 @@ func _process(delta: float) -> void:
 	if use_rigged_character and anim_player:
 		if is_moving:
 			if anim_player.current_animation != "walk":
-				anim_player.play("walk", 0.15)
+				anim_player.play("walk", 0.20)
 			anim_player.speed_scale = clampf(walk_speed_factor * 0.12, 0.6, 2.5)
 		else:
 			if anim_player.current_animation != "idle":

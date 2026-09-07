@@ -281,6 +281,13 @@ func _physics_process(delta: float) -> void:
 	# 4. First-Person Interaction Targeting
 	_check_interaction_target()
 
+	# 5. Third-Person Visual Character Model & Dynamic Shadow Animation
+	if caveman_model:
+		var horiz_vel := Vector2(velocity.x, velocity.z)
+		var is_walking := horiz_vel.length_squared() > 0.1 and is_on_floor()
+		caveman_model.is_moving = is_walking
+		caveman_model.walk_speed_factor = 14.0 if loco.get("is_sprinting", false) else 9.0
+
 # ---------------------------------------------------------------------------
 # First-Person Interaction & Targeting
 # ---------------------------------------------------------------------------
