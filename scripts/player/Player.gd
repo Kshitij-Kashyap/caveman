@@ -140,6 +140,14 @@ func _ready() -> void:
 	if viewmodel:
 		viewmodel.hit_deposit.connect(func(_d): if crosshair: crosshair.trigger_hit_marker())
 		viewmodel.hit_creature.connect(func(_c, _d): if crosshair: crosshair.trigger_hit_marker())
+		viewmodel.active_tool_changed.connect(func(_t, tool_name):
+			if crosshair:
+				crosshair.show_prompt("", "[%s]" % tool_name.to_upper(), "weapon")
+				get_tree().create_timer(1.2).timeout.connect(func():
+					if _current_interactable == null and crosshair:
+						crosshair.hide_prompt()
+				)
+		)
 
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
@@ -183,6 +191,36 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not is_ragdoll:
 		_perform_interaction()
 		return
+
+	# Weapon / Tool switching (Keys 1-4 & Mouse Wheel)
+	if event is InputEventMouseButton and event.pressed and not is_ragdoll:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			if viewmodel:
+				viewmodel.cycle_tool(-1)
+			return
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if viewmodel:
+				viewmodel.cycle_tool(1)
+			return
+
+	if event is InputEventKey and event.pressed and not event.echo and not is_ragdoll:
+		match event.physical_keycode:
+			KEY_1:
+				if viewmodel:
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.PICKAXE)
+				return
+			KEY_2:
+				if viewmodel:
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.SPEAR)
+				return
+			KEY_3:
+				if viewmodel:
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.CLUB)
+				return
+			KEY_4:
+				if viewmodel:
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.TORCH)
+				return
 
 	# Debug keys
 	if event is InputEventKey and event.pressed and not event.echo:

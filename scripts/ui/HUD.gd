@@ -208,7 +208,7 @@ func _on_weight_changed(current: float, maximum: float) -> void:
 
 func _on_currency_changed(amount: int) -> void:
 	if _currency_label:
-		_currency_label.text = "🦴 %d BONES" % amount
+		_currency_label.text = "🛞 %d STONE RINGS" % amount
 
 func _on_glow_changed(current: int, maximum: int) -> void:
 	if _glow_label:

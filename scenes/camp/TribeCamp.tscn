@@ -11,6 +11,7 @@
 [ext_resource type="Mesh" path="res://assets/models/camp/boulder.obj" id="9"]
 [ext_resource type="Mesh" path="res://assets/models/camp/primitive_crate.obj" id="10"]
 [ext_resource type="Mesh" path="res://assets/models/camp/primitive_barrel.obj" id="11"]
+[ext_resource type="Mesh" path="res://assets/models/items/stone_wheel.obj" id="12"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_camp"]
 sky_top_color = Color(0.22, 0.58, 0.98, 1)
@@ -240,6 +241,14 @@ mesh = ExtResource("9")
 [node name="Boulder4" type="MeshInstance3D" parent="PerimeterScenery"]
 transform = Transform3D(1.9, 0, 0.4, 0, 1.5, 0, -0.4, 0, 1.9, 24, 0, -8)
 mesh = ExtResource("9")
+
+[node name="StoneWheelMonument1" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.3, 0.35, 0.25, -0.3, 1.35, 0.1, -0.2, 0.1, 1.38, -10.8, 0.45, 4.8)
+mesh = ExtResource("12")
+
+[node name="StoneWheelMonument2" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.15, -0.2, 0.3, 0.25, 1.18, 0.1, -0.3, 0.1, 1.16, 2.4, 0.42, 1.4)
+mesh = ExtResource("12")
 
 [node name="Stations" type="Node3D" parent="."]
 
@@ -515,7 +524,7 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.6, 1)
 theme_override_font_sizes/font_size = 20
-text = "🦴 0 BONES"
+text = "🛞 0 STONE RINGS"
 horizontal_alignment = 2
 
 [node name="ResourcesLabel" type="Label" parent="CampHUD/TopRight/VBox"]

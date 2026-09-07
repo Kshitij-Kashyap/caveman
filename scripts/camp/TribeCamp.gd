@@ -66,7 +66,7 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 		"quest_board":
 			var q_text := "No quest currently selected."
 			if QuestManager.active_quest:
-				q_text = "Active Quest:\n%s\n\nGoal: Eliminate %d beasts.\nReward: %d Bones." % [
+				q_text = "Active Quest:\n%s\n\nGoal: Eliminate %d beasts.\nReward: %d Stone Rings." % [
 					QuestManager.active_quest.quest_name,
 					QuestManager.active_quest.required_quantity,
 					QuestManager.active_quest.reward_currency
@@ -83,7 +83,7 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 		"crafting_fire":
 			camp_hud.show_modal(
 				"CRAFTING FIRE",
-				"The campfire crackles with bright orange embers.\nRoast raw beast meats to heal wounds, and craft sturdy stone tools."
+				"The campfire crackles with bright orange embers.\nRoast raw beast meats to heal wounds, and craft sturdy stone tools and spears."
 			)
 		"storage_chest":
 			var stock_text := "Tribe Stockpile:\n"
@@ -96,7 +96,7 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 		"upgrade_station":
 			camp_hud.show_modal(
 				"TRIBE UPGRADES",
-				"Enhance warrior attributes using recovered bones and raw minerals.\nMax Health: +%d | Max Stamina: +%d" % [
+				"Enhance warrior attributes using recovered stone rings and raw minerals.\nMax Health: +%d | Max Stamina: +%d" % [
 					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.HEALTH_MAX)),
 					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.STAMINA_MAX))
 				]
@@ -109,7 +109,7 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 		"elder_npc":
 			camp_hud.show_modal(
 				"TRIBE ELDER OOG",
-				"\"Greetings, hunter! The subterranean caves run deep and treacherous. Watch your stamina, watch each other's backs, and bring back glory to the tribe!\"",
+				"\"Greetings, hunter! Take your spear and pickaxe deep into the caves. Watch your stamina, look out for beast packs, and bring back carved stone rings to honor the tribe!\"",
 				"\"HONOR THE TRIBE\""
 			)
 		"camp_center", "camp_bonfire":
@@ -136,6 +136,7 @@ func _spawn_physics_props() -> void:
 	var crate_mesh := load("res://assets/models/camp/primitive_crate.obj") as Mesh
 	var bone_mesh := load("res://assets/models/camp/mammoth_bone.obj") as Mesh
 	var boulder_mesh := load("res://assets/models/camp/boulder.obj") as Mesh
+	var wheel_mesh := load("res://assets/models/items/stone_wheel.obj") as Mesh
 
 	var prop_configs: Array[Dictionary] = [
 		# Barrels
@@ -154,13 +155,16 @@ func _spawn_physics_props() -> void:
 		{ "type": "rock",   "pos": Vector3(-3.5, 0.4, -4.5), "size": Vector3(0.7, 0.6, 0.7), "mesh": boulder_mesh },
 		{ "type": "rock",   "pos": Vector3(4.2, 0.4, -3.8), "size": Vector3(0.8, 0.7, 0.8), "mesh": boulder_mesh },
 		{ "type": "rock",   "pos": Vector3(0.0, 0.4, -6.5), "size": Vector3(0.9, 0.8, 0.9), "mesh": boulder_mesh },
+		# Rollable Stone Wheel Currency Props
+		{ "type": "wheel",  "pos": Vector3(-2.8, 0.45, 1.8), "size": Vector3(0.35, 0.14, 0.35), "mesh": wheel_mesh },
+		{ "type": "wheel",  "pos": Vector3(3.2, 0.45, 2.2),  "size": Vector3(0.35, 0.14, 0.35), "mesh": wheel_mesh },
 	]
 
 	for cfg in prop_configs:
 		var rb := RigidBody3D.new()
 		rb.name = "Prop_%s" % cfg["type"].capitalize()
 		rb.position = cfg["pos"]
-		rb.mass = 12.0
+		rb.mass = 14.0
 		rb.collision_layer = 1 # World
 		rb.collision_mask = 3  # World + Player
 
@@ -187,6 +191,11 @@ func _spawn_physics_props() -> void:
 				var sph_shape := SphereShape3D.new()
 				sph_shape.radius = cfg["size"].x * 0.5
 				col.shape = sph_shape
+			"wheel":
+				var cyl_shape := CylinderShape3D.new()
+				cyl_shape.radius = cfg["size"].x
+				cyl_shape.height = cfg["size"].y
+				col.shape = cyl_shape
 
 		rb.add_child(col)
 		rb.add_child(mesh_inst)

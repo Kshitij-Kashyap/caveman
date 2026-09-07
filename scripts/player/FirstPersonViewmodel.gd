@@ -1,27 +1,48 @@
 ## FirstPersonViewmodel.gd
 ## High-polish first-person viewmodel for Cave Raiders.
 ## Features:
-## - Chunky low-poly prehistoric pickaxe + caveman forearm & fist
+## - Chunky low-poly prehistoric arsenal: Pickaxe, Spear, Club, and Fire Torch
 ## - Dynamic weapon sway based on mouse motion
 ## - Locomotion bobbing (idle breathing, walking figure-8, sprinting stride)
 ## - Jump/fall and landing dips
-## - Responsive kinetic swing animation with mining & combat hit detection
+## - Tool-specific attack animations (Pickaxe chop, Spear thrust, Club slam, Torch jab)
+## - Weapon switching with smooth drop & raise animations
+## - Dynamic torch firelight casting warm glow into dark caves
 ## - Customization-linked skin tones
 
 class_name FirstPersonViewmodel
 extends Node3D
 
 signal swing_started()
+signal active_tool_changed(tool_type: int, tool_name: String)
 signal hit_deposit(deposit: Node)
 signal hit_creature(creature_health: Node, direction: Vector3)
 signal hit_world(position: Vector3, normal: Vector3)
 
 # ---------------------------------------------------------------------------
-# Exports
+# Enums
 # ---------------------------------------------------------------------------
+enum ToolType {
+	PICKAXE = 0,
+	SPEAR = 1,
+	CLUB = 2,
+	TORCH = 3
+}
+
+const TOOL_NAMES := {
+	ToolType.PICKAXE: "Stone Pickaxe",
+	ToolType.SPEAR: "Flint Spear",
+	ToolType.CLUB: "Stone Club",
+	ToolType.TORCH: "Fire Torch"
+}
+
+# ---------------------------------------------------------------------------
+# Exports & Stats
+# ---------------------------------------------------------------------------
+@export var current_tool: ToolType = ToolType.PICKAXE
 @export var reach: float = 2.4
 @export var mining_power: float = 1.0
-@export var melee_damage: float = 14.0
+@export var melee_damage: float = 15.0
 @export var swing_rate: float = 1.35 ## Swings per second
 
 @export var sway_amount: float = 0.0018
@@ -37,6 +58,7 @@ signal hit_world(position: Vector3, normal: Vector3)
 # ---------------------------------------------------------------------------
 var _can_swing: bool = true
 var _is_swinging: bool = false
+var _is_switching: bool = false
 var _sway_offset: Vector3 = Vector3.ZERO
 var _rotation_sway: Vector3 = Vector3.ZERO
 var _bob_timer: float = 0.0
@@ -45,13 +67,18 @@ var _land_dip: float = 0.0
 var _rest_transform: Transform3D
 
 # Visual instances
-var pickaxe_mesh: MeshInstance3D
 var arm_mesh: MeshInstance3D
+var pickaxe_mesh: MeshInstance3D
+var spear_mesh: MeshInstance3D
+var club_mesh: MeshInstance3D
+var torch_mesh: MeshInstance3D
+var torch_light: OmniLight3D
 
 var mat_skin: StandardMaterial3D
 var mat_wood: StandardMaterial3D
 var mat_stone: StandardMaterial3D
 var mat_leather: StandardMaterial3D
+var mat_fire: StandardMaterial3D
 
 # ---------------------------------------------------------------------------
 # Lifecycle
@@ -62,6 +89,8 @@ func _ready() -> void:
 	transform.origin = default_pos
 	rotation = default_rot
 	_rest_transform = transform
+	_apply_tool_visibility()
+	_update_tool_stats()
 
 func _init_materials() -> void:
 	mat_skin = StandardMaterial3D.new()
@@ -88,6 +117,13 @@ func _init_materials() -> void:
 	mat_leather.albedo_color = Color(0.55, 0.36, 0.22)
 	mat_leather.roughness = 0.90
 
+	mat_fire = StandardMaterial3D.new()
+	mat_fire.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	mat_fire.albedo_color = Color(1.0, 0.45, 0.1)
+	mat_fire.emission_enabled = true
+	mat_fire.emission = Color(1.0, 0.45, 0.1)
+	mat_fire.emission_energy_multiplier = 3.5
+
 func _build_viewmodel() -> void:
 	for c in get_children():
 		c.queue_free()
@@ -102,21 +138,150 @@ func _build_viewmodel() -> void:
 			arm_mesh.set_surface_override_material(i, mat_skin)
 	add_child(arm_mesh)
 
-	# 2. Prehistoric Pickaxe
+	# 2. Pickaxe
 	pickaxe_mesh = MeshInstance3D.new()
 	pickaxe_mesh.name = "PickaxeMesh"
 	var pick_obj := load("res://assets/models/character/tool_pickaxe.obj") as Mesh
 	if pick_obj:
 		pickaxe_mesh.mesh = pick_obj
-		for i in pick_obj.get_surface_count():
-			var s_name: String = pick_obj.surface_get_name(i).to_lower()
-			if "wood" in s_name:
-				pickaxe_mesh.set_surface_override_material(i, mat_wood)
-			elif "stone" in s_name:
-				pickaxe_mesh.set_surface_override_material(i, mat_stone)
-			else:
-				pickaxe_mesh.set_surface_override_material(i, mat_leather)
+		_assign_tool_materials(pickaxe_mesh, pick_obj)
 	add_child(pickaxe_mesh)
+
+	# 3. Spear
+	spear_mesh = MeshInstance3D.new()
+	spear_mesh.name = "SpearMesh"
+	spear_mesh.position = Vector3(-0.02, -0.05, 0.1)
+	var spear_obj := load("res://assets/models/character/tool_spear.obj") as Mesh
+	if spear_obj:
+		spear_mesh.mesh = spear_obj
+		_assign_tool_materials(spear_mesh, spear_obj)
+	add_child(spear_mesh)
+
+	# 4. Club
+	club_mesh = MeshInstance3D.new()
+	club_mesh.name = "ClubMesh"
+	club_mesh.position = Vector3(0.0, -0.02, 0.0)
+	var club_obj := load("res://assets/models/character/tool_club.obj") as Mesh
+	if club_obj:
+		club_mesh.mesh = club_obj
+		_assign_tool_materials(club_mesh, club_obj)
+	add_child(club_mesh)
+
+	# 5. Torch
+	torch_mesh = MeshInstance3D.new()
+	torch_mesh.name = "TorchMesh"
+	torch_mesh.position = Vector3(0.0, -0.02, 0.0)
+	var torch_obj := load("res://assets/models/character/tool_torch.obj") as Mesh
+	if torch_obj:
+		torch_mesh.mesh = torch_obj
+		_assign_tool_materials(torch_mesh, torch_obj)
+	add_child(torch_mesh)
+
+	# Torch Dynamic Light
+	torch_light = OmniLight3D.new()
+	torch_light.name = "TorchLight"
+	torch_light.position = Vector3(0.0, 0.45, 0.0)
+	torch_light.light_color = Color(1.0, 0.60, 0.18)
+	torch_light.light_energy = 2.4
+	torch_light.shadow_enabled = true
+	torch_light.omni_range = 10.0
+	torch_mesh.add_child(torch_light)
+
+func _assign_tool_materials(m_inst: MeshInstance3D, m_obj: Mesh) -> void:
+	for i in m_obj.get_surface_count():
+		var s_name: String = m_obj.surface_get_name(i).to_lower()
+		if "wood" in s_name:
+			m_inst.set_surface_override_material(i, mat_wood)
+		elif "stone" in s_name:
+			m_inst.set_surface_override_material(i, mat_stone)
+		elif "fire" in s_name:
+			m_inst.set_surface_override_material(i, mat_fire)
+		else:
+			m_inst.set_surface_override_material(i, mat_leather)
+
+# ---------------------------------------------------------------------------
+# Weapon Switching
+# ---------------------------------------------------------------------------
+func set_tool(new_tool: ToolType) -> void:
+	current_tool = new_tool
+	_apply_tool_visibility()
+	_update_tool_stats()
+	active_tool_changed.emit(int(current_tool), get_current_tool_name())
+
+func switch_tool(new_tool: ToolType, instant: bool = false) -> void:
+	if new_tool == current_tool:
+		return
+
+	if instant:
+		_is_swinging = false
+		_is_switching = false
+		_can_swing = true
+		set_tool(new_tool)
+		return
+
+	if _is_switching or _is_swinging:
+		return
+
+	_is_switching = true
+	_can_swing = false
+
+	# Smooth lower weapon
+	var t := create_tween()
+	t.tween_property(self, "position", default_pos + Vector3(0.0, -0.28, 0.08), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_callback(func():
+		set_tool(new_tool)
+	)
+	# Smooth raise weapon
+	t.tween_property(self, "position", default_pos, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_callback(func():
+		_is_switching = false
+		_can_swing = true
+	)
+
+func cycle_tool(direction: int) -> void:
+	var count := ToolType.size()
+	var next := (int(current_tool) + direction) % count
+	if next < 0:
+		next += count
+	switch_tool(next as ToolType)
+
+func get_current_tool_name() -> String:
+	return TOOL_NAMES.get(current_tool, "Weapon")
+
+func _apply_tool_visibility() -> void:
+	if pickaxe_mesh:
+		pickaxe_mesh.visible = (current_tool == ToolType.PICKAXE)
+	if spear_mesh:
+		spear_mesh.visible = (current_tool == ToolType.SPEAR)
+	if club_mesh:
+		club_mesh.visible = (current_tool == ToolType.CLUB)
+	if torch_mesh:
+		torch_mesh.visible = (current_tool == ToolType.TORCH)
+	if torch_light:
+		torch_light.visible = (current_tool == ToolType.TORCH)
+
+func _update_tool_stats() -> void:
+	match current_tool:
+		ToolType.PICKAXE:
+			reach = 2.4
+			mining_power = 1.0
+			melee_damage = 15.0
+			swing_rate = 1.35
+		ToolType.SPEAR:
+			reach = 3.6
+			mining_power = 0.2
+			melee_damage = 25.0
+			swing_rate = 1.60
+		ToolType.CLUB:
+			reach = 2.2
+			mining_power = 0.6
+			melee_damage = 32.0
+			swing_rate = 1.05
+		ToolType.TORCH:
+			reach = 2.0
+			mining_power = 0.0
+			melee_damage = 10.0
+			swing_rate = 1.40
 
 # ---------------------------------------------------------------------------
 # Customization Sync
@@ -145,12 +310,16 @@ func trigger_land_dip(impact_velocity: float) -> void:
 	_land_dip = clamp(impact_velocity * 0.005, 0.02, 0.06)
 
 func process_viewmodel(delta: float, velocity: Vector3, is_on_floor: bool, is_sprinting: bool) -> void:
+	# Flickering torch light
+	if current_tool == ToolType.TORCH and torch_light and torch_light.visible:
+		torch_light.light_energy = 2.2 + sin(Time.get_ticks_msec() * 0.015) * 0.35
+
 	# Recovery from sway
 	_sway_offset = _sway_offset.lerp(Vector3.ZERO, sway_smoothness * delta)
 	_rotation_sway = _rotation_sway.lerp(Vector3.ZERO, sway_smoothness * delta)
 	_land_dip = move_toward(_land_dip, 0.0, delta * 0.2)
 
-	if _is_swinging:
+	if _is_swinging or _is_switching:
 		return
 
 	# Locomotion bobbing
@@ -173,7 +342,7 @@ func process_viewmodel(delta: float, velocity: Vector3, is_on_floor: bool, is_sp
 		bob_pos.x = cos(_bob_timer * 0.5) * 0.002
 
 	if not is_on_floor:
-		bob_pos.y -= 0.025 # In-air drop
+		bob_pos.y -= 0.025
 
 	bob_pos.y -= _land_dip
 
@@ -187,43 +356,111 @@ func process_viewmodel(delta: float, velocity: Vector3, is_on_floor: bool, is_sp
 	rotation.z = lerp_angle(rotation.z, target_rot.z, delta * 14.0)
 
 # ---------------------------------------------------------------------------
-# Kinetic Mining & Combat Swing
+# Kinetic Mining & Combat Attacks
 # ---------------------------------------------------------------------------
 func try_swing() -> bool:
-	if not _can_swing or _is_swinging:
+	if not _can_swing or _is_swinging or _is_switching:
 		return false
-	_start_swing()
+
+	match current_tool:
+		ToolType.PICKAXE:
+			_start_pickaxe_chop()
+		ToolType.SPEAR:
+			_start_spear_thrust()
+		ToolType.CLUB:
+			_start_club_slam()
+		ToolType.TORCH:
+			_start_torch_jab()
+
 	return true
 
-func _start_swing() -> void:
+func _start_pickaxe_chop() -> void:
 	_can_swing = false
 	_is_swinging = true
 	swing_started.emit()
 
 	var t := create_tween().set_parallel(false)
-	
-	# Phase 1: Rapid wind-up (0.07s)
+	# Wind-up
 	t.parallel().tween_property(self, "position", default_pos + Vector3(-0.04, 0.06, 0.05), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(self, "rotation", default_rot + Vector3(-0.35, 0.22, -0.15), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
-	# Phase 2: High-energy kinetic chop (0.09s)
+	# Kinetic chop
 	t.chain().parallel().tween_property(self, "position", default_pos + Vector3(-0.06, -0.10, -0.14), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.75, -0.28, 0.25), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 
-	# Hit impact frame
 	t.tween_callback(_check_hit)
 
-	# Phase 3: Recoil & recovery (0.18s)
+	# Recovery
 	t.chain().parallel().tween_property(self, "position", default_pos, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(self, "rotation", default_rot, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-	t.tween_callback(func():
-		_is_swinging = false
-	)
+	t.tween_callback(func(): _is_swinging = false)
+	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
 
-	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func():
-		_can_swing = true
-	)
+func _start_spear_thrust() -> void:
+	_can_swing = false
+	_is_swinging = true
+	swing_started.emit()
+
+	var t := create_tween().set_parallel(false)
+	# Pull back slightly (0.05s)
+	t.parallel().tween_property(self, "position", default_pos + Vector3(0.02, 0.02, 0.14), 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(-0.05, 0.04, 0.02), 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	# Explosive forward thrust along Z (0.08s)
+	t.chain().parallel().tween_property(self, "position", default_pos + Vector3(-0.03, 0.01, -0.36), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.04, -0.02, -0.06), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+	t.tween_callback(_check_hit)
+
+	# Recoil back to ready stance (0.16s)
+	t.chain().parallel().tween_property(self, "position", default_pos, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(func(): _is_swinging = false)
+	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
+
+func _start_club_slam() -> void:
+	_can_swing = false
+	_is_swinging = true
+	swing_started.emit()
+
+	var t := create_tween().set_parallel(false)
+	# Heavy wind-up right and back (0.10s)
+	t.parallel().tween_property(self, "position", default_pos + Vector3(0.08, 0.08, 0.08), 0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(-0.25, -0.45, 0.30), 0.10).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	# Sweeping horizontal slam (0.11s)
+	t.chain().parallel().tween_property(self, "position", default_pos + Vector3(-0.15, -0.04, -0.16), 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.35, 0.65, -0.45), 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+	t.tween_callback(_check_hit)
+
+	# Slower heavy recovery (0.24s)
+	t.chain().parallel().tween_property(self, "position", default_pos, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(func(): _is_swinging = false)
+	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
+
+func _start_torch_jab() -> void:
+	_can_swing = false
+	_is_swinging = true
+	swing_started.emit()
+
+	var t := create_tween().set_parallel(false)
+	# Quick jab forward with flame flare (0.07s)
+	t.parallel().tween_property(self, "position", default_pos + Vector3(-0.02, 0.02, -0.25), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.12, -0.08, 0.10), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(_check_hit)
+
+	# Recovery (0.15s)
+	t.chain().parallel().tween_property(self, "position", default_pos, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(func(): _is_swinging = false)
+	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
 
 func _check_hit() -> void:
 	var cam := get_viewport().get_camera_3d()
@@ -259,7 +496,8 @@ func _check_hit() -> void:
 	if c_health and c_health.has_method("take_damage"):
 		var kd := forward
 		kd.y = 0.25
-		c_health.take_damage.rpc_id(1, melee_damage, kd.normalized(), 6.0)
+		var impulse_force := 10.0 if current_tool == ToolType.CLUB else (7.0 if current_tool == ToolType.SPEAR else 5.0)
+		c_health.take_damage.rpc_id(1, melee_damage, kd.normalized(), impulse_force)
 		hit_creature.emit(c_health, kd)
 		AudioManager.play_sfx(AudioManager.SFX.PICKAXE_HIT)
 		return

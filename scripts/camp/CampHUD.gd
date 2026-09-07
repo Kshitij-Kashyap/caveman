@@ -96,7 +96,7 @@ func _on_action_pressed() -> void:
 # ---------------------------------------------------------------------------
 func _on_currency_changed(amount: int) -> void:
 	if currency_label:
-		currency_label.text = "🦴 %d BONES" % amount
+		currency_label.text = "🛞 %d STONE RINGS" % amount
 
 func _on_resources_changed(totals: Dictionary) -> void:
 	if not resources_label:

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "stone_club"
+item_name = "Stone Club"
+item_type = 1
+description = "A brutal knotty wooden club embedded with a stone tooth. Delivers heavy concussive impacts."
+max_stack = 1
+weight = 3.5
+sell_value = 20

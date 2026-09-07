@@ -115,7 +115,7 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.6, 1)
 theme_override_font_sizes/font_size = 20
-text = "🦴 0 BONES"
+text = "🛞 0 STONE RINGS"
 horizontal_alignment = 2
 
 [node name="GlowLabel" type="Label" parent="TopRight/VBox"]

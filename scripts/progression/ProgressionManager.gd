@@ -20,7 +20,7 @@ var purchased_upgrades: Array[String] = []
 ## Unlocked region IDs (shallow_caves always unlocked)
 var unlocked_regions: Array[String] = ["shallow_caves"]
 
-## Primary currency ("Bones")
+## Primary currency ("Stone Rings" / "Stone Wheels")
 var currency: int = 0
 
 ## Stats
