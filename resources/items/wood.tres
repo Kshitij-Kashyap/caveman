@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "wood"
+item_name = "Hardwood Timber"
+item_type = 0
+description = "Dense prehistoric wood chopped from ancient trunks. Essential for crafting hafts, shelters, and campfires."
+max_stack = 50
+weight = 0.8
+sell_value = 4

@@ -1,6 +1,9 @@
 extends Node
 
+const ChoppableTree = preload("res://scripts/items/ChoppableTree.gd")
+
 func _ready() -> void:
+
 	print("==================================================")
 	print("--- BEGIN VISUAL FOUNDATION & WEAPON ARSENAL VERIFICATION ---")
 	print("==================================================")
@@ -125,6 +128,7 @@ func _ready() -> void:
 	var vm := player.viewmodel
 	assert(vm.arm_mesh != null and vm.arm_mesh.mesh != null, "Viewmodel arm mesh must be loaded")
 	assert(vm.pickaxe_mesh != null and vm.pickaxe_mesh.mesh != null, "Pickaxe mesh must be loaded")
+	assert(vm.axe_mesh != null and vm.axe_mesh.mesh != null, "Stone Axe mesh must be loaded")
 	assert(vm.spear_mesh != null and vm.spear_mesh.mesh != null, "Spear mesh must be loaded")
 	assert(vm.club_mesh != null and vm.club_mesh.mesh != null, "Club mesh must be loaded")
 	assert(vm.torch_mesh != null and vm.torch_mesh.mesh != null, "Torch mesh must be loaded")
@@ -151,40 +155,114 @@ func _ready() -> void:
 	assert(player.viewmodel.visible, "Viewmodel must restore in first-person")
 	print("  -> First-Person Controls & Viewmodel passed.")
 
-	# 10. Test Arsenal Weapon Switching (Pickaxe, Spear, Club, Torch)
-	print("[10/10] Testing Prehistoric Weapon Switching & Stats...")
-	# Initial tool is Pickaxe
+	# 10. Test Arsenal Weapon Switching (Pickaxe, Axe, Spear, Club, Torch)
+	print("[10/12] Testing Prehistoric 5-Tool Arsenal Switching & Stats...")
+	# Initial tool is Pickaxe (0)
 	assert(vm.current_tool == FirstPersonViewmodel.ToolType.PICKAXE, "Initial tool must be PICKAXE")
 	assert(vm.pickaxe_mesh.visible, "Pickaxe mesh must be visible")
+	assert(not vm.axe_mesh.visible, "Axe mesh must be hidden initially")
 	assert(not vm.spear_mesh.visible, "Spear mesh must be hidden initially")
 
-	# Switch to Spear
+	# Switch to Stone Axe (1)
+	vm.switch_tool(FirstPersonViewmodel.ToolType.AXE, true)
+	assert(vm.current_tool == FirstPersonViewmodel.ToolType.AXE, "Current tool must be AXE")
+	assert(vm.axe_mesh.visible, "Axe mesh must be visible")
+	assert(not vm.pickaxe_mesh.visible, "Pickaxe mesh must be hidden when Axe is active")
+	assert(vm.melee_damage >= 20.0, "Stone axe damage must be at least 20")
+	assert(vm.get_current_tool_name() == "Stone Axe", "Tool name must be Stone Axe")
+
+	# Switch to Spear (2)
 	vm.switch_tool(FirstPersonViewmodel.ToolType.SPEAR, true)
 	assert(vm.current_tool == FirstPersonViewmodel.ToolType.SPEAR, "Current tool must be SPEAR")
 	assert(vm.spear_mesh.visible, "Spear mesh must be visible")
-	assert(not vm.pickaxe_mesh.visible, "Pickaxe mesh must be hidden when Spear is active")
+	assert(not vm.axe_mesh.visible, "Axe mesh must be hidden when Spear is active")
 	assert(vm.reach >= 3.5, "Spear reach must be at least 3.5m")
 	assert(vm.get_current_tool_name() == "Flint Spear", "Tool name must be Flint Spear")
 
-	# Switch to Club
+	# Switch to Club (3)
 	vm.switch_tool(FirstPersonViewmodel.ToolType.CLUB, true)
 	assert(vm.current_tool == FirstPersonViewmodel.ToolType.CLUB, "Current tool must be CLUB")
 	assert(vm.club_mesh.visible, "Club mesh must be visible")
 	assert(vm.melee_damage >= 30.0, "Club damage must be at least 30")
 
-	# Switch to Torch
+	# Switch to Torch (4)
 	vm.switch_tool(FirstPersonViewmodel.ToolType.TORCH, true)
 	assert(vm.current_tool == FirstPersonViewmodel.ToolType.TORCH, "Current tool must be TORCH")
 	assert(vm.torch_mesh.visible, "Torch mesh must be visible")
 	assert(vm.torch_light.visible, "Torch light must be visible when Torch is active")
+	assert(vm.torch_light.light_energy > 0.0, "Torch light energy must be positive")
 
 	# Cycle back to Pickaxe
 	vm.switch_tool(FirstPersonViewmodel.ToolType.PICKAXE, true)
 	assert(vm.current_tool == FirstPersonViewmodel.ToolType.PICKAXE, "Current tool must restore to PICKAXE")
 	assert(not vm.torch_light.visible, "Torch light must turn off when switching away")
-	print("  -> Prehistoric Weapon Switching & Stats passed.")
+
+	# Test HUD Quickslot Dock
+	assert(hud._tool_slot_panels.size() == 5, "HUD must have 5 quickslot panels")
+	hud._on_active_tool_changed(1, "Stone Axe")
+	assert(hud._active_tool_index == 1, "HUD active tool index must update to 1 for Stone Axe")
+	print("  -> Prehistoric 5-Tool Arsenal Switching & HUD Dock passed.")
+
+	# 11. Test Woodchopping Mechanic & ChoppableTree
+	print("[11/12] Testing Woodchopping Mechanic & ChoppableTree...")
+	var tree_scene := load("res://scenes/items/ChoppableTree.tscn") as PackedScene
+	assert(tree_scene != null, "ChoppableTree scene must load")
+	var tree := tree_scene.instantiate() as ChoppableTree
+	add_child(tree)
+	assert(tree.current_health == 5, "Tree initial health should be 5")
+
+	# Chop with generic tool (1 damage)
+	tree.on_hit(1.0, false)
+	assert(tree.current_health == 4, "Generic hit should reduce tree health by 1")
+
+	# Chop with Stone Axe (2.5x multiplier -> 3 damage)
+	tree.on_hit(1.0, true)
+	assert(tree.current_health == 1, "Axe hit should deal bonus chopping damage")
+
+	# Final chop to fell tree
+	var felled := [false]
+	tree.tree_chopped.connect(func(): felled[0] = true)
+	tree.on_hit(1.0, true)
+	assert(tree.is_chopped, "Tree should be flagged as chopped")
+	assert(felled[0], "tree_chopped signal must emit")
+
+	# Test Torch Ignition on a fresh tree
+	var burn_tree := tree_scene.instantiate() as ChoppableTree
+	add_child(burn_tree)
+	var ignited := [false]
+	burn_tree.tree_ignited.connect(func(): ignited[0] = true)
+	burn_tree.on_torch_hit()
+	assert(burn_tree.is_burning, "Tree should be burning when hit with torch")
+	assert(ignited[0], "tree_ignited signal must emit")
+	var fire_light: OmniLight3D = burn_tree.get_node_or_null("FireLight")
+	assert(fire_light != null and fire_light.visible, "Tree fire light must be visible when burning")
+	print("  -> Woodchopping Mechanic & ChoppableTree passed.")
+
+	# 12. Test Wood Resource & Loot Collection
+	print("[12/12] Testing Wood Resource & Inventory Collection...")
+	var wood_res := load("res://resources/items/wood.tres") as ItemDefinition
+	assert(wood_res != null, "wood.tres must load")
+	assert(wood_res.item_id == "wood", "wood.tres item_id must be 'wood'")
+	assert(wood_res.item_type == ItemDefinition.ItemType.RESOURCE, "wood item_type must be RESOURCE")
+
+	var axe_res := load("res://resources/items/axe.tres") as ItemDefinition
+	assert(axe_res != null, "axe.tres must load")
+	assert(axe_res.item_id == "stone_axe", "axe.tres item_id must be 'stone_axe'")
+
+	var pickaxe_res := load("res://resources/items/pickaxe.tres") as ItemDefinition
+	assert(pickaxe_res != null, "pickaxe.tres must load")
+	assert(pickaxe_res.item_id == "stone_pickaxe", "pickaxe.tres item_id must be 'stone_pickaxe'")
+
+	# Test player collecting wood into inventory
+	var inv: InventoryComponent = player.inventory
+	assert(inv != null, "Player must have InventoryComponent")
+	var add_ok := inv.add_item("wood", 4)
+	assert(add_ok, "Player inventory should successfully collect wood")
+	assert(inv.has_item("wood", 4), "Inventory must contain 4 wood")
+	print("  -> Wood Resource & Inventory Collection passed.")
 
 	print("==================================================")
-	print("--- ALL 10 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 12 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
+

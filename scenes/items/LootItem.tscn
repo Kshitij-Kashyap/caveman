@@ -27,7 +27,7 @@ mesh = SubResource("SphereMesh_1")
 [node name="Label3D" type="Label3D" parent="."]
 position = Vector3(0, 0.4, 0)
 pixel_size = 0.005
-billboard = 3
+billboard = 1
 font_size = 32
 text = "Item"
 

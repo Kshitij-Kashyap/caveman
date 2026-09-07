@@ -27,11 +27,24 @@ extends CanvasLayer
 var _local_player: Player = null
 var _status_effects: Dictionary = {} # effect_id -> { "node": Control, "time_left": float }
 
+var _tool_dock: MarginContainer
+var _tool_slot_panels: Array[PanelContainer] = []
+var _active_tool_index: int = 0
+
+const TOOL_SLOTS: Array[Dictionary] = [
+	{"key": "1", "icon": "⛏", "name": "Pickaxe"},
+	{"key": "2", "icon": "🪓", "name": "Axe"},
+	{"key": "3", "icon": "🗡", "name": "Spear"},
+	{"key": "4", "icon": "🪵", "name": "Club"},
+	{"key": "5", "icon": "🔥", "name": "Torch"},
+]
+
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
 func _ready() -> void:
 	_setup_bar_styles()
+	_setup_tool_dock()
 	_extract_label.visible = false
 
 	# Currency connection
@@ -111,6 +124,11 @@ func _connect_to_local_player() -> void:
 	var glow := _local_player.glow_system
 	if glow:
 		glow.rock_count_changed.connect(_on_glow_changed)
+
+	var vm := _local_player.find_child("FirstPersonViewmodel", true, false) as FirstPersonViewmodel
+	if vm:
+		vm.active_tool_changed.connect(_on_active_tool_changed)
+		_on_active_tool_changed(int(vm.current_tool), vm.get_current_tool_name())
 
 	_on_health_changed(_local_player.current_health, _local_player.max_health)
 	_on_stamina_changed(_local_player.current_stamina, _local_player.max_stamina)
@@ -239,3 +257,107 @@ func show_extraction_countdown(time_left: float, _total: float) -> void:
 	if _extract_label:
 		_extract_label.visible = true
 		_extract_label.text = "EXTRACTING IN %.0f…" % ceilf(time_left)
+
+# ---------------------------------------------------------------------------
+# Tool Dock Quickslot HUD
+# ---------------------------------------------------------------------------
+func _setup_tool_dock() -> void:
+	_tool_dock = MarginContainer.new()
+	_tool_dock.name = "ToolDockContainer"
+	_tool_dock.anchors_preset = Control.PRESET_CENTER_BOTTOM
+	_tool_dock.anchor_left = 0.5
+	_tool_dock.anchor_right = 0.5
+	_tool_dock.anchor_top = 1.0
+	_tool_dock.anchor_bottom = 1.0
+	_tool_dock.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_tool_dock.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_tool_dock.offset_left = -225.0
+	_tool_dock.offset_right = 225.0
+	_tool_dock.offset_top = -65.0
+	_tool_dock.offset_bottom = -15.0
+
+	var hbox := HBoxContainer.new()
+	hbox.name = "SlotsHBox"
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 8)
+	_tool_dock.add_child(hbox)
+
+	_tool_slot_panels.clear()
+	for i in TOOL_SLOTS.size():
+		var slot_data: Dictionary = TOOL_SLOTS[i]
+		var panel := PanelContainer.new()
+		panel.name = "Slot_%d" % (i + 1)
+		panel.custom_minimum_size = Vector2(82, 44)
+
+		var inner_vbox := VBoxContainer.new()
+		inner_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		inner_vbox.add_theme_constant_override("separation", 1)
+
+		var top_hbox := HBoxContainer.new()
+		top_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		top_hbox.add_theme_constant_override("separation", 4)
+
+		var key_lbl := Label.new()
+		key_lbl.text = "[%s]" % slot_data["key"]
+		key_lbl.add_theme_font_size_override("font_size", 11)
+		key_lbl.add_theme_color_override("font_color", Color(0.9, 0.75, 0.35, 0.8))
+		top_hbox.add_child(key_lbl)
+
+		var icon_lbl := Label.new()
+		icon_lbl.text = slot_data["icon"]
+		icon_lbl.add_theme_font_size_override("font_size", 13)
+		top_hbox.add_child(icon_lbl)
+		inner_vbox.add_child(top_hbox)
+
+		var name_lbl := Label.new()
+		name_lbl.name = "NameLabel"
+		name_lbl.text = slot_data["name"]
+		name_lbl.add_theme_font_size_override("font_size", 11)
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		inner_vbox.add_child(name_lbl)
+
+		panel.add_child(inner_vbox)
+		hbox.add_child(panel)
+		_tool_slot_panels.append(panel)
+
+	add_child(_tool_dock)
+	_update_tool_dock_styles()
+
+func _update_tool_dock_styles() -> void:
+	for i in _tool_slot_panels.size():
+		var panel: PanelContainer = _tool_slot_panels[i]
+		var is_active := (i == _active_tool_index)
+		var style := StyleBoxFlat.new()
+		style.corner_radius_top_left = 6
+		style.corner_radius_top_right = 6
+		style.corner_radius_bottom_left = 6
+		style.corner_radius_bottom_right = 6
+
+		var name_lbl: Label = panel.find_child("NameLabel", true, false) as Label
+
+		if is_active:
+			style.bg_color = Color(0.24, 0.16, 0.08, 0.95)
+			style.border_color = Color(1.0, 0.78, 0.32, 1.0)
+			style.border_width_left = 2
+			style.border_width_right = 2
+			style.border_width_top = 2
+			style.border_width_bottom = 2
+			if name_lbl:
+				name_lbl.add_theme_color_override("font_color", Color(1.0, 0.92, 0.65, 1.0))
+		else:
+			style.bg_color = Color(0.10, 0.09, 0.08, 0.75)
+			style.border_color = Color(0.32, 0.26, 0.20, 0.6)
+			style.border_width_left = 1
+			style.border_width_right = 1
+			style.border_width_top = 1
+			style.border_width_bottom = 1
+			if name_lbl:
+				name_lbl.add_theme_color_override("font_color", Color(0.65, 0.60, 0.52, 1.0))
+
+		panel.add_theme_stylebox_override("panel", style)
+
+
+func _on_active_tool_changed(tool_idx: int, _tool_name: String) -> void:
+	_active_tool_index = tool_idx
+	_update_tool_dock_styles()
+

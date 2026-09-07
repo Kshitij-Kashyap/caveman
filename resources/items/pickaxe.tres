@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "stone_pickaxe"
+item_name = "Stone Pickaxe"
+item_type = 2
+description = "A sturdy stone pickaxe bound with sinew. Capable of chipping through hard cave stone, ore veins, and mineral deposits."
+max_stack = 1
+weight = 2.5
+sell_value = 15

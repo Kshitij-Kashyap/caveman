@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "stone_axe"
+item_name = "Stone Axe"
+item_type = 2
+description = "A sharp knapped flint blade lashed to an ashwood haft. Perfect for felling trees and cleaving primal foes."
+max_stack = 1
+weight = 2.2
+sell_value = 18

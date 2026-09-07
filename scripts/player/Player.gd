@@ -211,13 +211,17 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 			KEY_2:
 				if viewmodel:
-					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.SPEAR)
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.AXE)
 				return
 			KEY_3:
 				if viewmodel:
-					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.CLUB)
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.SPEAR)
 				return
 			KEY_4:
+				if viewmodel:
+					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.CLUB)
+				return
+			KEY_5:
 				if viewmodel:
 					viewmodel.switch_tool(FirstPersonViewmodel.ToolType.TORCH)
 				return
@@ -302,6 +306,21 @@ func _check_interaction_target() -> void:
 			var d_name: String = deposit.get("deposit_name") if "deposit_name" in deposit else "Ore Deposit"
 			var hits: int = deposit.get("current_hits_remaining") if "current_hits_remaining" in deposit else 3
 			crosshair.show_prompt("LMB", "Mine %s (%d Hits)" % [d_name, hits], "mine")
+			return
+
+		# B2. ChoppableTree
+		var tree := _find_ancestor_script(collider, "ChoppableTree")
+		if not tree and (collider is ChoppableTree or (collider.has_method("on_hit") and collider.has_signal("tree_chopped"))):
+			tree = collider
+		if tree and not tree.get("is_chopped"):
+			_current_interactable = tree
+			var hp: int = tree.get("current_health") if "current_health" in tree else 5
+			if viewmodel and viewmodel.current_tool == FirstPersonViewmodel.ToolType.TORCH:
+				crosshair.show_prompt("LMB", "Ignite Tree with Torch", "mine")
+			elif viewmodel and viewmodel.current_tool == FirstPersonViewmodel.ToolType.AXE:
+				crosshair.show_prompt("LMB", "Chop Tree (Stone Axe) [%d HP]" % hp, "mine")
+			else:
+				crosshair.show_prompt("LMB", "Chop Tree [%d HP]" % hp, "mine")
 			return
 
 		# C. LootItem

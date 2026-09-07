@@ -42,6 +42,7 @@ func _item_color() -> Color:
 		"meat":    return Color(0.75, 0.25, 0.20)
 		"hide":    return Color(0.65, 0.50, 0.30)
 		"bone":    return Color(0.90, 0.88, 0.78)
+		"wood":    return Color(0.48, 0.30, 0.15)
 		"stone":   return Color(0.50, 0.50, 0.52)
 		"flint":   return Color(0.55, 0.48, 0.42)
 		"copper":  return Color(0.72, 0.45, 0.20)

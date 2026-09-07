@@ -352,8 +352,104 @@ def build_torch():
 
     return b
 
+# ---------------------------------------------------------------------------
+# 5. PREHISTORIC STONE AXE (CHOPPER & WEAPON)
+
+# ---------------------------------------------------------------------------
+def build_axe():
+    b = ObjBuilder("tool_axe")
+
+    # A. Wooden Handle (y = -0.36 to y = 0.26)
+    b.set_material("mat_wood")
+    handle_segs = [
+        # (y, radius, ox, oz)
+        (-0.36, 0.026, 0.000, -0.012), # Bottom flared butt
+        (-0.33, 0.022, 0.000, -0.008),
+        (-0.24, 0.019, 0.002, -0.004),
+        (-0.10, 0.018, 0.002,  0.000), # Grip center
+        ( 0.06, 0.019, 0.001,  0.005),
+        ( 0.16, 0.021, 0.000,  0.009), # Neck
+        ( 0.22, 0.023, -0.001, 0.012), # Head mount
+        ( 0.26, 0.020, -0.002, 0.012), # Top haft tip
+    ]
+    rings = []
+    n_pts = 6
+    for y, r, ox, oz in handle_segs:
+        ring = []
+        for i in range(n_pts):
+            ang = i * (2.0 * math.pi / n_pts)
+            vx = ox + math.cos(ang) * r
+            vz = oz + math.sin(ang) * r
+            ring.append(b.add_vertex(vx, y, vz))
+        rings.append(ring)
+    b.add_cylinder_section(rings)
+
+    # Cap handle bottom
+    bot_center = b.add_vertex(handle_segs[0][2], handle_segs[0][0] - 0.01, handle_segs[0][3])
+    for i in range(n_pts):
+        ni = (i + 1) % n_pts
+        b.add_triangle(bot_center, rings[0][ni], rings[0][i])
+
+    # Cap handle top
+    top_center = b.add_vertex(handle_segs[-1][2], handle_segs[-1][0] + 0.01, handle_segs[-1][3])
+    for i in range(n_pts):
+        ni = (i + 1) % n_pts
+        b.add_triangle(top_center, rings[-1][i], rings[-1][ni])
+
+    # B. Flaked Flint / Chipped Stone Axe Blade
+    # Stretches along Z: +Z is poll/butt hammer, -Z is wide crescent chopping edge
+    b.set_material("mat_stone")
+    # Diamond/faceted profile: (z, x_half, y_top, y_bot)
+    blade_sections = [
+        # (z, x_half, y_top, y_bot)
+        ( 0.08, 0.024, 0.240, 0.160), # Blunt poll butt
+        ( 0.04, 0.030, 0.250, 0.150), # Back socket
+        (-0.02, 0.032, 0.260, 0.140), # Mid shaft socket
+        (-0.08, 0.022, 0.275, 0.125), # Expanding neck
+        (-0.14, 0.012, 0.295, 0.105), # Blade flare
+        (-0.19, 0.003, 0.315, 0.085), # Sharp crescent cutting edge
+    ]
+    b_rings = []
+    for z, xh, yt, yb in blade_sections:
+        ym = (yt + yb) * 0.5
+        v_top = b.add_vertex( 0.0, yt, z)
+        v_rit = b.add_vertex(  xh, ym, z)
+        v_bot = b.add_vertex( 0.0, yb, z)
+        v_lft = b.add_vertex( -xh, ym, z)
+        b_rings.append([v_top, v_rit, v_bot, v_lft])
+    b.add_cylinder_section(b_rings)
+
+    # Cap blade butt (+Z)
+    back_center = b.add_vertex(0.0, (blade_sections[0][2] + blade_sections[0][3]) * 0.5, blade_sections[0][0] + 0.01)
+    b.add_triangle(back_center, b_rings[0][0], b_rings[0][1])
+    b.add_triangle(back_center, b_rings[0][1], b_rings[0][2])
+    b.add_triangle(back_center, b_rings[0][2], b_rings[0][3])
+    b.add_triangle(back_center, b_rings[0][3], b_rings[0][0])
+
+    # Cap sharp cutting edge (-Z)
+    edge_center = b.add_vertex(0.0, (blade_sections[-1][2] + blade_sections[-1][3]) * 0.5, blade_sections[-1][0] - 0.01)
+    b.add_triangle(edge_center, b_rings[-1][1], b_rings[-1][0])
+    b.add_triangle(edge_center, b_rings[-1][2], b_rings[-1][1])
+    b.add_triangle(edge_center, b_rings[-1][3], b_rings[-1][2])
+    b.add_triangle(edge_center, b_rings[-1][0], b_rings[-1][3])
+
+    # C. Sinew / Leather Cord Binding at Haft & Stone Junction
+    b.set_material("mat_clothing")
+    wrap_rings = []
+    for wy in [0.17, 0.20, 0.23]:
+        w_ring = []
+        for i in range(n_pts):
+            ang = i * (2.0 * math.pi / n_pts)
+            wr = 0.036
+            w_ring.append(b.add_vertex(math.cos(ang) * wr, wy, math.sin(ang) * wr))
+        wrap_rings.append(w_ring)
+    b.add_cylinder_section(wrap_rings)
+
+    return b
+
 
 def main():
+
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     char_dir = os.path.join(root_dir, "assets", "models", "character")
     item_dir = os.path.join(root_dir, "assets", "models", "items")
@@ -400,5 +496,12 @@ def main():
     torch.write_obj(torch_path, "tools.mtl")
     print(f"Generated tool_torch.obj ({len(torch.vertices)} verts, {len(torch.faces)} faces)")
 
+    # 5. Stone Axe (Woodchopping / Combat)
+    axe = build_axe()
+    axe_path = os.path.join(char_dir, "tool_axe.obj")
+    axe.write_obj(axe_path, "tools.mtl")
+    print(f"Generated tool_axe.obj ({len(axe.vertices)} verts, {len(axe.faces)} faces)")
+
 if __name__ == "__main__":
     main()
+

@@ -12,6 +12,7 @@
 [ext_resource type="Mesh" path="res://assets/models/camp/primitive_crate.obj" id="10"]
 [ext_resource type="Mesh" path="res://assets/models/camp/primitive_barrel.obj" id="11"]
 [ext_resource type="Mesh" path="res://assets/models/items/stone_wheel.obj" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/items/ChoppableTree.tscn" id="13_tree"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_camp"]
 sky_top_color = Color(0.22, 0.58, 0.98, 1)
@@ -225,6 +226,12 @@ mesh = ExtResource("6")
 [node name="Palm7" type="MeshInstance3D" parent="PerimeterScenery"]
 transform = Transform3D(1, 0, -0.4, 0, 1.1, 0, 0.4, 0, 1, 5, 0, -15)
 mesh = ExtResource("6")
+
+[node name="ChoppablePine1" parent="PerimeterScenery" instance=ExtResource("13_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -12)
+
+[node name="ChoppablePine2" parent="PerimeterScenery" instance=ExtResource("13_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -12)
 
 [node name="Boulder1" type="MeshInstance3D" parent="PerimeterScenery"]
 transform = Transform3D(1.8, 0, 0, 0, 1.4, 0, 0, 0, 1.8, -6, 0, -22)

@@ -24,13 +24,15 @@ signal hit_world(position: Vector3, normal: Vector3)
 # ---------------------------------------------------------------------------
 enum ToolType {
 	PICKAXE = 0,
-	SPEAR = 1,
-	CLUB = 2,
-	TORCH = 3
+	AXE = 1,
+	SPEAR = 2,
+	CLUB = 3,
+	TORCH = 4
 }
 
 const TOOL_NAMES := {
 	ToolType.PICKAXE: "Stone Pickaxe",
+	ToolType.AXE: "Stone Axe",
 	ToolType.SPEAR: "Flint Spear",
 	ToolType.CLUB: "Stone Club",
 	ToolType.TORCH: "Fire Torch"
@@ -69,6 +71,7 @@ var _rest_transform: Transform3D
 # Visual instances
 var arm_mesh: MeshInstance3D
 var pickaxe_mesh: MeshInstance3D
+var axe_mesh: MeshInstance3D
 var spear_mesh: MeshInstance3D
 var club_mesh: MeshInstance3D
 var torch_mesh: MeshInstance3D
@@ -146,6 +149,15 @@ func _build_viewmodel() -> void:
 		pickaxe_mesh.mesh = pick_obj
 		_assign_tool_materials(pickaxe_mesh, pick_obj)
 	add_child(pickaxe_mesh)
+
+	# 3. Stone Axe
+	axe_mesh = MeshInstance3D.new()
+	axe_mesh.name = "AxeMesh"
+	var axe_obj := load("res://assets/models/character/tool_axe.obj") as Mesh
+	if axe_obj:
+		axe_mesh.mesh = axe_obj
+		_assign_tool_materials(axe_mesh, axe_obj)
+	add_child(axe_mesh)
 
 	# 3. Spear
 	spear_mesh = MeshInstance3D.new()
@@ -251,6 +263,8 @@ func get_current_tool_name() -> String:
 func _apply_tool_visibility() -> void:
 	if pickaxe_mesh:
 		pickaxe_mesh.visible = (current_tool == ToolType.PICKAXE)
+	if axe_mesh:
+		axe_mesh.visible = (current_tool == ToolType.AXE)
 	if spear_mesh:
 		spear_mesh.visible = (current_tool == ToolType.SPEAR)
 	if club_mesh:
@@ -267,6 +281,11 @@ func _update_tool_stats() -> void:
 			mining_power = 1.0
 			melee_damage = 15.0
 			swing_rate = 1.35
+		ToolType.AXE:
+			reach = 2.4
+			mining_power = 1.0
+			melee_damage = 22.0
+			swing_rate = 1.25
 		ToolType.SPEAR:
 			reach = 3.6
 			mining_power = 0.2
@@ -365,6 +384,8 @@ func try_swing() -> bool:
 	match current_tool:
 		ToolType.PICKAXE:
 			_start_pickaxe_chop()
+		ToolType.AXE:
+			_start_axe_swing()
 		ToolType.SPEAR:
 			_start_spear_thrust()
 		ToolType.CLUB:
@@ -391,6 +412,29 @@ func _start_pickaxe_chop() -> void:
 	t.tween_callback(_check_hit)
 
 	# Recovery
+	t.chain().parallel().tween_property(self, "position", default_pos, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(func(): _is_swinging = false)
+	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
+
+func _start_axe_swing() -> void:
+	_can_swing = false
+	_is_swinging = true
+	swing_started.emit()
+
+	var t := create_tween().set_parallel(false)
+	# Wind-up: pull axe up and back right
+	t.parallel().tween_property(self, "position", default_pos + Vector3(0.06, 0.08, 0.04), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(-0.40, 0.35, -0.20), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+	# Powerful diagonal chopping cleave
+	t.chain().parallel().tween_property(self, "position", default_pos + Vector3(-0.12, -0.12, -0.16), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.85, -0.45, 0.35), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+	t.tween_callback(_check_hit)
+
+	# Smooth follow-through recovery
 	t.chain().parallel().tween_property(self, "position", default_pos, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(self, "rotation", default_rot, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
@@ -482,6 +526,18 @@ func _check_hit() -> void:
 	var collider: Node = result.get("collider")
 	var hit_pos: Vector3 = result.get("position", end)
 	var hit_norm: Vector3 = result.get("normal", Vector3.UP)
+
+	# Check for ChoppableTree
+	var tree := _find_ancestor_script(collider, "ChoppableTree")
+	if not tree and (collider is ChoppableTree or (collider.has_method("on_hit") and collider.has_signal("tree_chopped"))):
+		tree = collider
+	if tree:
+		if current_tool == ToolType.TORCH and tree.has_method("on_torch_hit"):
+			tree.on_torch_hit()
+		elif tree.has_method("on_hit"):
+			tree.on_hit(mining_power, current_tool == ToolType.AXE)
+		hit_deposit.emit(tree)
+		return
 
 	# Check for MineableDeposit
 	var deposit := _find_ancestor_script(collider, "MineableDeposit")

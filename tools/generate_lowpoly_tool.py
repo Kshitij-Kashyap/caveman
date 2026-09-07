@@ -192,6 +192,96 @@ def build_pickaxe_mesh():
 
     return b
 
+def build_axe_mesh():
+    b = ObjBuilder("axe")
+
+    # 1. WOODEN HANDLE (Y axis, from y = -0.36 to y = +0.26)
+    b.set_material("mat_wood")
+    segments = [
+        # (y, radius, x_offset, z_offset)
+        (-0.36, 0.026, 0.000, -0.012),
+        (-0.33, 0.022, 0.000, -0.008),
+        (-0.24, 0.019, 0.002, -0.004),
+        (-0.10, 0.018, 0.002,  0.000), # Grip
+        ( 0.06, 0.019, 0.001,  0.005),
+        ( 0.16, 0.021, 0.000,  0.009),
+        ( 0.22, 0.023, -0.001, 0.012), # Head socket
+        ( 0.26, 0.020, -0.002, 0.012), # Top tip
+    ]
+    rings = []
+    n_pts = 6
+    for y, r, ox, oz in segments:
+        ring = []
+        for i in range(n_pts):
+            angle = i * (2.0 * math.pi / n_pts)
+            vx = ox + math.cos(angle) * r
+            vz = oz + math.sin(angle) * r
+            ring.append(b.add_vertex(vx, y, vz))
+        rings.append(ring)
+    b.add_cylinder_section(rings)
+
+    # Bottom cap
+    b_center = b.add_vertex(segments[0][2], segments[0][0] - 0.01, segments[0][3])
+    for i in range(n_pts):
+        ni = (i + 1) % n_pts
+        b.add_triangle(b_center, rings[0][ni], rings[0][i])
+
+    # Top cap
+    t_center = b.add_vertex(segments[-1][2], segments[-1][0] + 0.01, segments[-1][3])
+    for i in range(n_pts):
+        ni = (i + 1) % n_pts
+        b.add_triangle(t_center, rings[-1][i], rings[-1][ni])
+
+    # 2. CHIPPED STONE AXE BLADE
+    # Stretches along Z: +Z is poll/hammer, -Z is crescent cutting edge
+    b.set_material("mat_stone")
+    blade_sections = [
+        # (z, x_half, y_top, y_bot)
+        ( 0.08, 0.024, 0.240, 0.160), # Blunt poll butt
+        ( 0.04, 0.030, 0.250, 0.150), # Back socket
+        (-0.02, 0.032, 0.260, 0.140), # Mid shaft socket
+        (-0.08, 0.022, 0.275, 0.125), # Expanding neck
+        (-0.14, 0.012, 0.295, 0.105), # Blade flare
+        (-0.19, 0.003, 0.315, 0.085), # Sharp crescent cutting edge
+    ]
+    s_rings = []
+    for z, xh, yt, yb in blade_sections:
+        ym = (yt + yb) * 0.5
+        v_top = b.add_vertex( 0.0, yt, z)
+        v_rit = b.add_vertex(  xh, ym, z)
+        v_bot = b.add_vertex( 0.0, yb, z)
+        v_lft = b.add_vertex( -xh, ym, z)
+        s_rings.append([v_top, v_rit, v_bot, v_lft])
+    b.add_cylinder_section(s_rings)
+
+    # Cap blade butt (+Z)
+    back_center = b.add_vertex(0.0, (blade_sections[0][2] + blade_sections[0][3]) * 0.5, blade_sections[0][0] + 0.01)
+    b.add_triangle(back_center, s_rings[0][0], s_rings[0][1])
+    b.add_triangle(back_center, s_rings[0][1], s_rings[0][2])
+    b.add_triangle(back_center, s_rings[0][2], s_rings[0][3])
+    b.add_triangle(back_center, s_rings[0][3], s_rings[0][0])
+
+    # Cap sharp cutting edge (-Z)
+    edge_center = b.add_vertex(0.0, (blade_sections[-1][2] + blade_sections[-1][3]) * 0.5, blade_sections[-1][0] - 0.01)
+    b.add_triangle(edge_center, s_rings[-1][1], s_rings[-1][0])
+    b.add_triangle(edge_center, s_rings[-1][2], s_rings[-1][1])
+    b.add_triangle(edge_center, s_rings[-1][3], s_rings[-1][2])
+    b.add_triangle(edge_center, s_rings[-1][0], s_rings[-1][3])
+
+    # 3. LEATHER BINDING
+    b.set_material("mat_clothing")
+    wrap_rings = []
+    for wy in [0.17, 0.20, 0.23]:
+        w_ring = []
+        for i in range(n_pts):
+            ang = i * (2.0 * math.pi / n_pts)
+            wr = 0.036
+            w_ring.append(b.add_vertex(math.cos(ang) * wr, wy, math.sin(ang) * wr))
+        wrap_rings.append(w_ring)
+    b.add_cylinder_section(wrap_rings)
+
+    return b
+
 def build_arm_mesh():
     b = ObjBuilder("viewmodel_arm")
     b.set_material("mat_skin")
@@ -290,6 +380,11 @@ if __name__ == "__main__":
     pickaxe.write_obj(os.path.join(out_dir, "tool_pickaxe.obj"), "tool_pickaxe.mtl")
     print("Generated tool_pickaxe.obj (vertices: %d, faces: %d)" % (len(pickaxe.vertices), len(pickaxe.faces)))
 
+    axe = build_axe_mesh()
+    axe.write_obj(os.path.join(out_dir, "tool_axe.obj"), "tool_pickaxe.mtl")
+    print("Generated tool_axe.obj (vertices: %d, faces: %d)" % (len(axe.vertices), len(axe.faces)))
+
     arm = build_arm_mesh()
     arm.write_obj(os.path.join(out_dir, "viewmodel_arm.obj"), "tool_pickaxe.mtl")
     print("Generated viewmodel_arm.obj (vertices: %d, faces: %d)" % (len(arm.vertices), len(arm.faces)))
+
