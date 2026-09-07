@@ -267,10 +267,25 @@ func _ready() -> void:
 	assert(campfire_scene != null, "Campfire scene must load")
 	var campfire := campfire_scene.instantiate() as Campfire
 	add_child(campfire)
-	assert(campfire.flames_node != null, "Campfire must have Flames node")
+	assert(campfire.stones_mesh != null and campfire.stones_mesh.mesh != null, "Campfire must have separate Stones mesh")
+	assert(campfire.wood_logs_mesh != null and campfire.wood_logs_mesh.mesh != null, "Campfire must have separate WoodLogs mesh")
+	assert(campfire.flames_node != null, "Campfire must have separate Flames node")
 	assert(campfire.flame_mesh != null and campfire.flame_mesh.mesh != null, "Campfire flame mesh must be loaded")
 	assert(campfire.fire_light != null, "Campfire must have FireLight OmniLight3D")
+	assert(campfire.smoke != null, "Campfire must have Smoke particles")
+	assert(campfire.has_smoke(), "Campfire smoke must be emitting when lit")
 	assert(campfire.is_flame_animated(), "Campfire flame must report as animated")
+
+	# Test toggling stones and wood logs separately
+	campfire.set_show_stones(false)
+	assert(not campfire.stones_mesh.visible, "Stones should hide when show_stones is false")
+	campfire.set_show_stones(true)
+	assert(campfire.stones_mesh.visible, "Stones should be visible when show_stones is true")
+
+	campfire.set_show_wood_logs(false)
+	assert(not campfire.wood_logs_mesh.visible, "Wood logs should hide when show_wood_logs is false")
+	campfire.set_show_wood_logs(true)
+	assert(campfire.wood_logs_mesh.visible, "Wood logs should be visible when show_wood_logs is true")
 
 	# Test shader on flame mesh
 	var flame_mat := campfire.flame_mesh.get_surface_override_material(0)
@@ -286,9 +301,12 @@ func _ready() -> void:
 	# Test extinguish and reignite
 	campfire.set_lit(false)
 	assert(not campfire.flames_node.visible, "Flames should hide when extinguished")
+	assert(not campfire.smoke.emitting, "Smoke should stop emitting when extinguished")
 	campfire.set_lit(true)
 	assert(campfire.flames_node.visible, "Flames should show when reignited")
-	print("  -> Animated Campfire passed.")
+	assert(campfire.smoke.emitting, "Smoke should resume emitting when reignited")
+	print("  -> Animated Campfire with Separated Wood/Flame & Smoke passed.")
+
 
 	# 14. Test Wood Log Model & Loot Integration (Quaternius)
 	print("[14/15] Testing Wood Log Model & Loot Integration (Quaternius)...")

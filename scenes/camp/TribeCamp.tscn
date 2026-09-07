@@ -357,13 +357,7 @@ mesh = SubResource("CylinderMesh_pit")
 surface_material_override/0 = SubResource("Mat_fire_pit")
 
 [node name="Campfire" parent="Stations/CraftingFire" instance=ExtResource("14_campfire")]
-transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, 0, 0.1, 0)
-
-[node name="FireLight" type="OmniLight3D" parent="Stations/CraftingFire"]
-position = Vector3(0, 1, 0)
-light_color = Color(1, 0.6, 0.2, 1)
-light_energy = 3.5
-omni_range = 9.0
+transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, 0, 0.25, 0)
 
 [node name="InteractableComponent" type="Node" parent="Stations/CraftingFire"]
 script = ExtResource("5")
@@ -493,14 +487,7 @@ mesh = SubResource("CylinderMesh_pit")
 surface_material_override/0 = SubResource("Mat_fire_pit")
 
 [node name="Campfire" parent="Stations/CampCenter" instance=ExtResource("14_campfire")]
-transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0.1, 0)
-
-[node name="BonfireLight" type="OmniLight3D" parent="Stations/CampCenter"]
-position = Vector3(0, 1.5, 0)
-light_color = Color(1, 0.55, 0.15, 1)
-light_energy = 4.5
-shadow_enabled = true
-omni_range = 14.0
+transform = Transform3D(0.95, 0, 0, 0, 0.95, 0, 0, 0, 0.95, 0, 0.25, 0)
 
 [node name="InteractableComponent" type="Node" parent="Stations/CampCenter"]
 script = ExtResource("5")

@@ -1,24 +1,26 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/camp/Campfire.gd" id="1_script"]
-[ext_resource type="ArrayMesh" path="res://assets/models/camp/campfire_base.obj" id="2_base"]
-[ext_resource type="ArrayMesh" path="res://assets/models/camp/campfire_flames.obj" id="3_flames"]
-[ext_resource type="Texture2D" path="res://assets/models/camp/campfire_palette.png" id="4_palette"]
-[ext_resource type="Shader" path="res://shaders/campfire_flame.gdshader" id="5_shader"]
+[ext_resource type="Mesh" path="res://assets/models/camp/campfire_stones.obj" id="2_stones"]
+[ext_resource type="Mesh" path="res://assets/models/camp/campfire_logs.obj" id="3_logs"]
+[ext_resource type="Mesh" path="res://assets/models/camp/campfire_flames.obj" id="4_flames"]
 
-[sub_resource type="StandardMaterial3D" id="Mat_CampfireBase"]
-albedo_texture = ExtResource("4_palette")
+[ext_resource type="Texture2D" path="res://assets/models/camp/campfire_palette.png" id="5_palette"]
+[ext_resource type="Shader" path="res://shaders/campfire_flame.gdshader" id="6_shader"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_CampfirePalette"]
+albedo_texture = ExtResource("5_palette")
 roughness = 0.85
 
 [sub_resource type="ShaderMaterial" id="Mat_CampfireFlames"]
 render_priority = 0
-shader = ExtResource("5_shader")
-shader_parameter/flame_core_color = Color(1, 0.85, 0.25, 1)
-shader_parameter/flame_tip_color = Color(1, 0.35, 0.05, 1)
-shader_parameter/emission_strength = 3.8
-shader_parameter/animation_speed = 5.2
-shader_parameter/wave_amplitude = 0.07
-shader_parameter/albedo_texture = ExtResource("4_palette")
+shader = ExtResource("6_shader")
+shader_parameter/flame_tint = Color(1, 0.72, 0.2, 1)
+shader_parameter/ember_tint = Color(1, 0.32, 0.05, 1)
+shader_parameter/emission_strength = 1.8
+shader_parameter/animation_speed = 4.8
+shader_parameter/wave_amplitude = 0.05
+shader_parameter/albedo_texture = ExtResource("5_palette")
 
 [sub_resource type="StandardMaterial3D" id="Mat_Embers"]
 shading_mode = 0
@@ -26,40 +28,83 @@ albedo_color = Color(1, 0.75, 0.2, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_Ember"]
 material = SubResource("Mat_Embers")
-size = Vector3(0.04, 0.04, 0.04)
+size = Vector3(0.035, 0.035, 0.035)
+
+[sub_resource type="StandardMaterial3D" id="Mat_Smoke"]
+transparency = 1
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 2
+albedo_color = Color(0.38, 0.36, 0.34, 0.45)
+
+[sub_resource type="SphereMesh" id="SphereMesh_Smoke"]
+material = SubResource("Mat_Smoke")
+radius = 0.16
+height = 0.32
+radial_segments = 6
+rings = 4
+
+[sub_resource type="Curve" id="Curve_SmokeScale"]
+_data = [Vector2(0, 0.4), 0.0, 1.4, 0, 0, Vector2(1, 1.9), 0.5, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_SmokeColor"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(0.28, 0.25, 0.22, 0.55, 0.42, 0.4, 0.38, 0.35, 0.55, 0.53, 0.5, 0)
 
 [node name="Campfire" type="Node3D"]
 script = ExtResource("1_script")
 
-[node name="BaseMesh" type="MeshInstance3D" parent="."]
-mesh = ExtResource("2_base")
-surface_material_override/0 = SubResource("Mat_CampfireBase")
+[node name="Stones" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_stones")
+surface_material_override/0 = SubResource("Mat_CampfirePalette")
+
+[node name="WoodLogs" type="MeshInstance3D" parent="."]
+mesh = ExtResource("3_logs")
+surface_material_override/0 = SubResource("Mat_CampfirePalette")
 
 [node name="Flames" type="Node3D" parent="."]
 
 [node name="FlameMesh" type="MeshInstance3D" parent="Flames"]
-mesh = ExtResource("3_flames")
+mesh = ExtResource("4_flames")
 surface_material_override/0 = SubResource("Mat_CampfireFlames")
 
 [node name="FireLight" type="OmniLight3D" parent="."]
-position = Vector3(0, 0.7, 0)
+position = Vector3(0, 0.75, 0)
 light_color = Color(1, 0.58, 0.16, 1)
-light_energy = 3.6
+light_energy = 2.8
 shadow_enabled = true
-omni_range = 8.0
+omni_range = 8.5
 
 [node name="Embers" type="CPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-amount = 16
-lifetime = 1.2
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+amount = 18
+lifetime = 1.3
 mesh = SubResource("BoxMesh_Ember")
 emission_shape = 3
-emission_box_extents = Vector3(0.2, 0.1, 0.2)
+emission_box_extents = Vector3(0.22, 0.1, 0.22)
 direction = Vector3(0, 1, 0)
-spread = 22.0
-gravity = Vector3(0, 0.5, 0)
+spread = 25.0
+gravity = Vector3(0, 0.6, 0)
 initial_velocity_min = 1.0
-initial_velocity_max = 2.2
+initial_velocity_max = 2.4
 scale_amount_min = 0.6
 scale_amount_max = 1.2
 color = Color(1, 0.8, 0.25, 1)
+
+[node name="Smoke" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+amount = 22
+lifetime = 2.8
+mesh = SubResource("SphereMesh_Smoke")
+emission_shape = 3
+emission_box_extents = Vector3(0.18, 0.1, 0.18)
+direction = Vector3(0, 1, 0)
+spread = 18.0
+gravity = Vector3(0.08, 0.32, 0.04)
+initial_velocity_min = 0.7
+initial_velocity_max = 1.5
+angular_velocity_min = -20.0
+angular_velocity_max = 20.0
+scale_amount_curve = SubResource("Curve_SmokeScale")
+color_ramp = SubResource("Gradient_SmokeColor")
