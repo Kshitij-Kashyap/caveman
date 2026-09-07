@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ThrownSpear.gd" id="1_script"]
+[ext_resource type="ArrayMesh" path="res://assets/models/character/tool_spear.obj" id="2_mesh"]
+[ext_resource type="Script" path="res://scripts/interactables/InteractableComponent.gd" id="3_interact"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_spear"]
+friction = 0.8
+bounce = 0.15
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_spear"]
+radius = 0.05
+height = 1.65
+
+[node name="ThrownSpear" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 15
+mass = 1.4
+physics_material_override = SubResource("PhysicsMaterial_spear")
+continuous_cd = true
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, -0.1)
+shape = SubResource("CapsuleShape3D_spear")
+
+[node name="ModelPivot" type="Node3D" parent="."]
+
+[node name="SpearMesh" type="MeshInstance3D" parent="ModelPivot"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+mesh = ExtResource("2_mesh")
+
+[node name="InteractableComponent" type="Node" parent="."]
+script = ExtResource("3_interact")
+prompt_key = "E"
+prompt_action = "Retrieve Spear"
+interactable_name = "Flint Spear"
+target_type = "item"
+is_interactable = false

@@ -17,6 +17,8 @@
 [ext_resource type="PackedScene" path="res://scenes/nature/PolyTree.tscn" id="15_polytree"]
 [ext_resource type="PackedScene" path="res://scenes/items/ChoppablePolyTree.tscn" id="16_choppablepolytree"]
 [ext_resource type="PackedScene" path="res://scenes/items/WoodLogProp.tscn" id="17_woodlog"]
+[ext_resource type="Script" path="res://scripts/camp/BasecampTerrain.gd" id="18_terrain"]
+[ext_resource type="PackedScene" path="res://scenes/camp/SpearTarget.tscn" id="19_target"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_camp"]
 sky_top_color = Color(0.22, 0.58, 0.98, 1)
@@ -164,6 +166,7 @@ shadow_enabled = true
 [node name="Ground" type="StaticBody3D" parent="."]
 collision_layer = 1
 collision_mask = 0
+script = ExtResource("18_terrain")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
 position = Vector3(0, -0.25, 0)
@@ -275,6 +278,18 @@ mesh = ExtResource("12")
 [node name="StoneWheelMonument2" type="MeshInstance3D" parent="PerimeterScenery"]
 transform = Transform3D(1.15, -0.2, 0.3, 0.25, 1.18, 0.1, -0.3, 0.1, 1.16, 2.4, 0.42, 1.4)
 mesh = ExtResource("12")
+
+[node name="TestingGround" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -18)
+
+[node name="SpearTarget1" parent="TestingGround" instance=ExtResource("19_target")]
+transform = Transform3D(0.966, 0, 0.259, 0, 1, 0, -0.259, 0, 0.966, 0, 0.6, 0)
+
+[node name="SpearTarget2" parent="TestingGround" instance=ExtResource("19_target")]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, 4.5, 0.8, -4.0)
+
+[node name="SpearTarget3" parent="TestingGround" instance=ExtResource("19_target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.4, 3.5)
 
 [node name="Stations" type="Node3D" parent="."]
 

@@ -23,6 +23,7 @@ const StaminaComponent = preload("res://scripts/player/components/StaminaCompone
 const StatusEffectComponent = preload("res://scripts/player/components/StatusEffectComponent.gd")
 const InventoryComponent = preload("res://scripts/player/components/InventoryComponent.gd")
 const InteractableComponent = preload("res://scripts/interactables/InteractableComponent.gd")
+const ThrownSpear = preload("res://scripts/items/ThrownSpear.gd")
 
 # ---------------------------------------------------------------------------
 # Signals
@@ -259,9 +260,60 @@ func _process(_delta: float) -> void:
 
 	# Continuous mining / attack swing on Left Click hold
 	var is_captured := Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED or DisplayServer.get_name() == "headless"
-	if Input.is_action_pressed("mine") and is_captured:
+
+	# Spear Throwing mechanics (Aim on RMB hold, Release RMB to throw)
+	if viewmodel and viewmodel.current_tool == FirstPersonViewmodel.ToolType.SPEAR and is_captured:
+		if Input.is_action_pressed("aim"):
+			if not viewmodel.is_aiming_spear:
+				viewmodel.start_spear_aim()
+				if fp_camera:
+					fp_camera.is_aiming = true
+				if crosshair:
+					crosshair.show_prompt("RMB", "Release to Throw Spear", "weapon")
+		elif Input.is_action_just_released("aim"):
+			if viewmodel.is_aiming_spear:
+				_execute_spear_throw()
+		elif controller and controller.is_sprinting:
+			if viewmodel.is_aiming_spear:
+				viewmodel.cancel_spear_aim()
+				if fp_camera:
+					fp_camera.is_aiming = false
+				if crosshair:
+					crosshair.hide_prompt()
+	elif viewmodel and viewmodel.is_aiming_spear:
+		viewmodel.cancel_spear_aim()
+		if fp_camera:
+			fp_camera.is_aiming = false
+		if crosshair:
+			crosshair.hide_prompt()
+
+	if Input.is_action_pressed("mine") and is_captured and not (viewmodel and viewmodel.is_aiming_spear):
 		if viewmodel:
 			viewmodel.try_swing()
+
+func _execute_spear_throw() -> void:
+	if fp_camera:
+		fp_camera.is_aiming = false
+	if crosshair:
+		crosshair.hide_prompt()
+
+	if caveman_model and caveman_model.has_method("play_action"):
+		caveman_model.play_action("spear_throw")
+
+	var launch_cb := func():
+		var spear_scene := load("res://scenes/items/ThrownSpear.tscn") as PackedScene
+		if not spear_scene:
+			return
+		var spear := spear_scene.instantiate() as ThrownSpear
+		var cam := fp_camera.camera if fp_camera else null
+		if not cam:
+			return
+		get_tree().current_scene.add_child(spear)
+		var fwd := -cam.global_transform.basis.z
+		var spawn_pos := cam.global_position + fwd * 0.75 + Vector3(0, -0.06, 0)
+		spear.launch(spawn_pos, fwd, 28.0)
+
+	viewmodel.throw_spear(launch_cb)
 
 func _physics_process(delta: float) -> void:
 	if is_ragdoll:

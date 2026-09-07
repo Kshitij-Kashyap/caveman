@@ -18,6 +18,9 @@ signal active_tool_changed(tool_type: int, tool_name: String)
 signal hit_deposit(deposit: Node)
 signal hit_creature(creature_health: Node, direction: Vector3)
 signal hit_world(position: Vector3, normal: Vector3)
+signal spear_aim_started()
+signal spear_aim_ended()
+signal spear_thrown()
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -61,6 +64,7 @@ const TOOL_NAMES := {
 var _can_swing: bool = true
 var _is_swinging: bool = false
 var _is_switching: bool = false
+var is_aiming_spear: bool = false
 var _sway_offset: Vector3 = Vector3.ZERO
 var _rotation_sway: Vector3 = Vector3.ZERO
 var _bob_timer: float = 0.0
@@ -224,6 +228,9 @@ func switch_tool(new_tool: ToolType, instant: bool = false) -> void:
 	if new_tool == current_tool:
 		return
 
+	if is_aiming_spear:
+		cancel_spear_aim()
+
 	if instant:
 		_is_swinging = false
 		_is_switching = false
@@ -341,6 +348,17 @@ func process_viewmodel(delta: float, velocity: Vector3, is_on_floor: bool, is_sp
 	if _is_swinging or _is_switching:
 		return
 
+	# Overhand spear aim stance processing
+	if is_aiming_spear:
+		var aim_pos := default_pos + Vector3(-0.05, 0.08, 0.16) + _sway_offset * 0.35
+		var aim_rot := default_rot + Vector3(-0.42, 0.12, -0.20) + _rotation_sway * 0.35
+		aim_pos.y += sin(Time.get_ticks_msec() * 0.012) * 0.0015
+		transform.origin = transform.origin.lerp(aim_pos, delta * 16.0)
+		rotation.x = lerp_angle(rotation.x, aim_rot.x, delta * 16.0)
+		rotation.y = lerp_angle(rotation.y, aim_rot.y, delta * 16.0)
+		rotation.z = lerp_angle(rotation.z, aim_rot.z, delta * 16.0)
+		return
+
 	# Locomotion bobbing
 	var horiz_speed := Vector2(velocity.x, velocity.z).length()
 	var bob_pos := Vector3.ZERO
@@ -378,7 +396,7 @@ func process_viewmodel(delta: float, velocity: Vector3, is_on_floor: bool, is_sp
 # Kinetic Mining & Combat Attacks
 # ---------------------------------------------------------------------------
 func try_swing() -> bool:
-	if not _can_swing or _is_swinging or _is_switching:
+	if not _can_swing or _is_swinging or _is_switching or is_aiming_spear:
 		return false
 
 	match current_tool:
@@ -463,6 +481,63 @@ func _start_spear_thrust() -> void:
 
 	t.tween_callback(func(): _is_swinging = false)
 	get_tree().create_timer(1.0 / swing_rate).timeout.connect(func(): _can_swing = true)
+
+# ---------------------------------------------------------------------------
+# Ballistic Spear Throwing
+# ---------------------------------------------------------------------------
+func start_spear_aim() -> bool:
+	if current_tool != ToolType.SPEAR or _is_swinging or _is_switching or is_aiming_spear:
+		return false
+	is_aiming_spear = true
+	_can_swing = false
+	spear_aim_started.emit()
+	return true
+
+func cancel_spear_aim() -> void:
+	if not is_aiming_spear:
+		return
+	is_aiming_spear = false
+	_can_swing = true
+	spear_aim_ended.emit()
+
+func throw_spear(on_launch_callback: Callable = Callable()) -> bool:
+	if not is_aiming_spear or _is_swinging:
+		return false
+	is_aiming_spear = false
+	_is_swinging = true
+	_can_swing = false
+	spear_aim_ended.emit()
+
+	var t := create_tween().set_parallel(false)
+	# Fast explosive overhand spear throw forward & down
+	t.parallel().tween_property(self, "position", default_pos + Vector3(0.04, -0.06, -0.42), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.35, -0.10, 0.15), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+	t.tween_callback(func():
+		if on_launch_callback.is_valid():
+			on_launch_callback.call()
+		spear_thrown.emit()
+		if spear_mesh:
+			spear_mesh.visible = false
+	)
+
+	# Recovery: pull arm back down
+	t.chain().parallel().tween_property(self, "position", default_pos + Vector3(0.0, -0.22, 0.08), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.parallel().tween_property(self, "rotation", default_rot + Vector3(0.1, 0, 0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	# Re-arm spear mesh
+	t.tween_callback(func():
+		if spear_mesh and current_tool == ToolType.SPEAR:
+			spear_mesh.visible = true
+	)
+	t.chain().parallel().tween_property(self, "position", default_pos, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(self, "rotation", default_rot, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	t.tween_callback(func():
+		_is_swinging = false
+		_can_swing = true
+	)
+	return true
 
 func _start_club_slam() -> void:
 	_can_swing = false

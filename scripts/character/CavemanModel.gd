@@ -53,6 +53,7 @@ var leg_right_upper: MeshInstance3D
 var is_moving: bool = false
 var walk_speed_factor: float = 10.0
 var _anim_time: float = 0.0
+var _action_timer: float = 0.0
 var enable_idle_bob: bool = true
 
 # ---------------------------------------------------------------------------
@@ -441,6 +442,51 @@ func _setup_character_animations(ap: AnimationPlayer, skel: Skeleton3D) -> void:
 
 	lib.add_animation("walk", anim_walk)
 
+	# -------------------------------------------------------------
+	# 3. SPEAR THROW ANIMATION (Overhand draw back, explosive kinetic release)
+	# -------------------------------------------------------------
+	var anim_throw := Animation.new()
+	anim_throw.length = 0.55
+	anim_throw.loop_mode = Animation.LOOP_NONE
+
+	# Spine twisting and leaning back
+	if b_spine1 >= 0:
+		var t_sp_t := anim_throw.add_track(Animation.TYPE_ROTATION_3D)
+		anim_throw.track_set_path(t_sp_t, "RootNode/Skeleton3D:mixamorig_Spine1")
+		anim_throw.rotation_track_insert_key(t_sp_t, 0.0, q_spine1)
+		anim_throw.rotation_track_insert_key(t_sp_t, 0.16, q_spine1 * Quaternion(Vector3.UP, deg_to_rad(-25)) * Quaternion(Vector3.RIGHT, deg_to_rad(-12)))
+		anim_throw.rotation_track_insert_key(t_sp_t, 0.30, q_spine1 * Quaternion(Vector3.UP, deg_to_rad(15)) * Quaternion(Vector3.RIGHT, deg_to_rad(20)))
+		anim_throw.rotation_track_insert_key(t_sp_t, 0.55, q_spine1)
+
+	# Right Arm: Wind-up over shoulder and explosive forward throw
+	if b_r_arm >= 0:
+		var t_ra_t := anim_throw.add_track(Animation.TYPE_ROTATION_3D)
+		anim_throw.track_set_path(t_ra_t, "RootNode/Skeleton3D:mixamorig_RightArm")
+		anim_throw.rotation_track_insert_key(t_ra_t, 0.0, q_r_idle)
+		anim_throw.rotation_track_insert_key(t_ra_t, 0.16, rest_ra.basis.get_rotation_quaternion() * Basis.from_euler(Vector3(deg_to_rad(-45), deg_to_rad(30), deg_to_rad(65))).get_rotation_quaternion())
+		anim_throw.rotation_track_insert_key(t_ra_t, 0.30, rest_ra.basis.get_rotation_quaternion() * Basis.from_euler(Vector3(deg_to_rad(110), deg_to_rad(-10), deg_to_rad(15))).get_rotation_quaternion())
+		anim_throw.rotation_track_insert_key(t_ra_t, 0.55, q_r_idle)
+
+	# Right Forearm: flex at draw, snap straight at release
+	if b_r_fa >= 0:
+		var t_rfa_t := anim_throw.add_track(Animation.TYPE_ROTATION_3D)
+		anim_throw.track_set_path(t_rfa_t, "RootNode/Skeleton3D:mixamorig_RightForeArm")
+		anim_throw.rotation_track_insert_key(t_rfa_t, 0.0, q_r_fa_idle)
+		anim_throw.rotation_track_insert_key(t_rfa_t, 0.16, rest_r_fa.basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(75)))
+		anim_throw.rotation_track_insert_key(t_rfa_t, 0.30, rest_r_fa.basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(5)))
+		anim_throw.rotation_track_insert_key(t_rfa_t, 0.55, q_r_fa_idle)
+
+	# Left Arm: Counter-balance aiming forward
+	if b_l_arm >= 0:
+		var t_la_t := anim_throw.add_track(Animation.TYPE_ROTATION_3D)
+		anim_throw.track_set_path(t_la_t, "RootNode/Skeleton3D:mixamorig_LeftArm")
+		anim_throw.rotation_track_insert_key(t_la_t, 0.0, q_l_idle)
+		anim_throw.rotation_track_insert_key(t_la_t, 0.16, rest_la.basis.get_rotation_quaternion() * Basis.from_euler(Vector3(deg_to_rad(35), deg_to_rad(-20), deg_to_rad(-25))).get_rotation_quaternion())
+		anim_throw.rotation_track_insert_key(t_la_t, 0.30, rest_la.basis.get_rotation_quaternion() * Basis.from_euler(Vector3(deg_to_rad(70), deg_to_rad(15), deg_to_rad(-35))).get_rotation_quaternion())
+		anim_throw.rotation_track_insert_key(t_la_t, 0.55, q_l_idle)
+
+	lib.add_animation("spear_throw", anim_throw)
+
 func _build_modular_caveman() -> void:
 	var mesh_torso := load("res://assets/models/character/part_torso.obj") as Mesh
 	var mesh_head  := load("res://assets/models/character/part_head.obj") as Mesh
@@ -579,19 +625,30 @@ func set_first_person_visibility(is_first_person: bool) -> void:
 # ---------------------------------------------------------------------------
 # Animation Process
 # ---------------------------------------------------------------------------
+func play_action(action_name: String) -> void:
+	if anim_player and anim_player.has_animation(action_name):
+		anim_player.play(action_name, 0.08)
+		var anim: Animation = anim_player.get_animation(action_name)
+		if anim:
+			_action_timer = anim.length
+
 func _process(delta: float) -> void:
-	if not enable_idle_bob or not root_pivot:
+	if use_rigged_character:
+		if anim_player:
+			if _action_timer > 0.0:
+				_action_timer -= delta
+				return
+			if is_moving:
+				if anim_player.current_animation != "walk":
+					anim_player.play("walk", 0.2)
+				anim_player.speed_scale = clampf(walk_speed_factor * 0.12, 0.6, 2.5)
+			else:
+				if anim_player.current_animation != "idle":
+					anim_player.play("idle", 0.25)
+				anim_player.speed_scale = 1.0
 		return
 
-	if use_rigged_character and anim_player:
-		if is_moving:
-			if anim_player.current_animation != "walk":
-				anim_player.play("walk", 0.20)
-			anim_player.speed_scale = clampf(walk_speed_factor * 0.12, 0.6, 2.5)
-		else:
-			if anim_player.current_animation != "idle":
-				anim_player.play("idle", 0.25)
-			anim_player.speed_scale = 1.0
+	if not enable_idle_bob or not root_pivot:
 		return
 
 	_anim_time += delta

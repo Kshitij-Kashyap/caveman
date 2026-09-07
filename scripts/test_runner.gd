@@ -1,6 +1,9 @@
 extends Node
 
 const ChoppableTree = preload("res://scripts/items/ChoppableTree.gd")
+const ThrownSpear = preload("res://scripts/items/ThrownSpear.gd")
+const BasecampTerrain = preload("res://scripts/camp/BasecampTerrain.gd")
+const SpearTarget = preload("res://scripts/camp/SpearTarget.gd")
 
 func _ready() -> void:
 
@@ -399,8 +402,85 @@ func _ready() -> void:
 	assert(debug_inst.find_child("ClearRatsBtn", true, false) != null, "DebugMenu must have ClearRatsBtn")
 	print("  -> Jolt Physics Engine, Rat Prop, Creature Def & Debug Controls passed.")
 
+	# 17. Test Spear Throwing & Ballistic Projectile System
+	print("[17/18] Testing Spear Throwing & Ballistic Projectile System...")
+	assert(InputMap.has_action("aim"), "InputMap must define 'aim' action (RMB)")
+
+	# ThrownSpear projectile
+	var thrown_scene := load("res://scenes/items/ThrownSpear.tscn") as PackedScene
+	assert(thrown_scene != null, "ThrownSpear scene must load")
+	var spear := thrown_scene.instantiate() as ThrownSpear
+	assert(spear != null, "ThrownSpear must inherit RigidBody3D for Jolt ballistic simulation")
+	add_child(spear)
+	assert(spear.continuous_cd, "ThrownSpear must use continuous collision detection (CCD)")
+	assert(spear.mass >= 1.0, "ThrownSpear mass should be realistic")
+	assert(spear.find_child("SpearMesh", true, false) != null, "ThrownSpear must contain 3D SpearMesh")
+	assert(spear.find_child("CollisionShape3D", true, false) != null, "ThrownSpear must have CollisionShape3D")
+	assert(spear.interactable_comp != null, "ThrownSpear must have InteractableComponent for retrieval")
+
+	# Launch test
+	spear.launch(Vector3(0, 1.5, 0), Vector3.FORWARD, 28.0)
+	assert(spear.linear_velocity.length() > 20.0, "Spear launch must impart ballistic velocity")
+
+	# Stick & Retrieval test
+	spear._stick_to_target(null, Vector3(0, 1.0, -10), Vector3.FORWARD)
+	assert(spear.is_embedded, "Spear must report is_embedded = true after hitting surface")
+	assert(spear.freeze, "Spear must freeze physics body when embedded")
+	assert(spear.can_be_retrieved, "Embedded spear must be retrievable")
+	spear.retrieve(player)
+	assert(player.inventory.has_item("flint_spear", 1), "Player inventory must receive retrieved flint_spear")
+
+	# Viewmodel Aim & Throw State Machine
+	vm.switch_tool(FirstPersonViewmodel.ToolType.SPEAR, true)
+	var aim_ok := vm.start_spear_aim()
+	assert(aim_ok, "start_spear_aim() must succeed when SPEAR is active")
+	assert(vm.is_aiming_spear, "vm.is_aiming_spear must be true")
+	vm.cancel_spear_aim()
+	assert(not vm.is_aiming_spear, "cancel_spear_aim() must reset is_aiming_spear")
+	vm.start_spear_aim()
+	var throw_launched := [false]
+	var throw_ok := vm.throw_spear(func(): throw_launched[0] = true)
+	assert(throw_ok, "throw_spear() must execute from aim stance")
+
+	# CavemanModel dynamic spear throw action
+	assert(model.anim_player.has_animation("spear_throw"), "CavemanModel must have 'spear_throw' animation")
+	model.play_action("spear_throw")
+	assert(model.anim_player.current_animation == "spear_throw", "CavemanModel must play 'spear_throw'")
+	print("  -> Spear Throwing & Ballistic Projectile System passed.")
+
+	# 18. Test Uneven Basecamp Terrain & Spear Target Testing Ground
+	print("[18/18] Testing Uneven Basecamp Terrain & Testing Ground Targets...")
+	var terrain := BasecampTerrain.new()
+	add_child(terrain)
+	assert(terrain is StaticBody3D, "BasecampTerrain must inherit StaticBody3D")
+	var t_mesh_inst: MeshInstance3D = terrain.find_child("MeshInstance3D", true, false)
+	assert(t_mesh_inst != null and t_mesh_inst.mesh != null, "BasecampTerrain must generate procedural ArrayMesh")
+	var t_mesh: ArrayMesh = t_mesh_inst.mesh as ArrayMesh
+	assert(t_mesh.get_surface_count() > 0, "BasecampTerrain mesh must have surfaces")
+	var t_col: CollisionShape3D = terrain.find_child("CollisionShape3D", true, false)
+	assert(t_col != null and t_col.shape != null, "BasecampTerrain must generate Jolt collision shape")
+
+	# SpearTarget
+	var target_scene := load("res://scenes/camp/SpearTarget.tscn") as PackedScene
+	assert(target_scene != null, "SpearTarget scene must load")
+	var target := target_scene.instantiate() as SpearTarget
+	add_child(target)
+	assert(target.is_in_group("targets"), "SpearTarget must belong to 'targets' group")
+	var score_bullseye := target.on_spear_hit(target.global_position + Vector3(0, 1.4, 0))
+	assert(score_bullseye == 100, "Center hit on SpearTarget must score 100 bullseye (got: %d)" % score_bullseye)
+	var score_outer := target.on_spear_hit(target.global_position + Vector3(0.45, 1.4, 0))
+	assert(score_outer == 25, "Outer hit on SpearTarget must score 25 (got: %d)" % score_outer)
+
+	# TribeCamp TestingGround integration
+	assert(camp.find_child("TestingGround", true, false) != null, "TribeCamp must contain TestingGround node")
+	assert(camp.find_child("SpearTarget1", true, false) != null, "TribeCamp must have SpearTarget1")
+	assert(camp.find_child("SpearTarget2", true, false) != null, "TribeCamp must have SpearTarget2")
+	var camp_ground := camp.get_node_or_null("Ground")
+	assert(camp_ground != null and camp_ground.get_script() == BasecampTerrain, "TribeCamp Ground must use BasecampTerrain script")
+	print("  -> Uneven Basecamp Terrain & Testing Ground Targets passed.")
+
 	print("==================================================")
-	print("--- ALL 16 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 18 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
 

@@ -26,6 +26,10 @@ enum State {
 @export var eye_height: float = 1.65
 @export var head_bob_enabled: bool = true
 @export var head_bob_intensity: float = 0.032
+@export var base_fov: float = 75.0
+@export var aim_fov: float = 66.0
+
+var is_aiming: bool = false
 
 # ---------------------------------------------------------------------------
 # Node References
@@ -98,6 +102,10 @@ func process_camera(delta: float, velocity: Vector3, is_on_floor: bool, speed: f
 
 func _process_normal_camera(delta: float, velocity: Vector3, is_on_floor: bool, speed: float) -> void:
 	_land_offset = move_toward(_land_offset, 0.0, delta * 0.3)
+
+	if camera:
+		var target_fov := aim_fov if is_aiming else base_fov
+		camera.fov = lerp(camera.fov, target_fov, delta * 12.0)
 
 	var is_moving := Vector2(velocity.x, velocity.z).length_squared() > 0.2
 	if head_bob_enabled and is_moving and is_on_floor:
