@@ -361,9 +361,48 @@ func _ready() -> void:
 	assert(choppable_poly.current_health < 5, "ChoppablePolyTree should take axe chopping damage")
 	print("  -> Poly Tree & Choppable Poly Tree passed.")
 
+	# 16. Test Jolt Physics Engine & Rat Physics Prop (Quaternius)
+	print("[16/16] Testing Jolt Physics Engine & Rat Physics Prop (Quaternius)...")
+	var engine_setting: String = ProjectSettings.get_setting("physics/3d/physics_engine", "")
+	assert(engine_setting == "Jolt Physics", "Project must use Jolt Physics as 3D physics engine (current: %s)" % engine_setting)
+
+	# Rat Physics Prop
+	var rat_scene := load("res://scenes/creatures/RatPhysicsProp.tscn") as PackedScene
+	assert(rat_scene != null, "RatPhysicsProp scene must load")
+	var rat := rat_scene.instantiate() as RigidBody3D
+	assert(rat != null, "RatPhysicsProp must inherit RigidBody3D for Jolt Physics simulation")
+	add_child(rat)
+	assert(rat.mass > 0.5, "Rat mass should be configured for physical realism")
+	assert(rat.physics_material_override != null, "Rat must have PhysicsMaterial override for bounce/friction")
+	assert(rat.is_in_group("physics_rats"), "Rat must belong to 'physics_rats' group")
+	assert(rat.find_child("CollisionShape3D", true, false) != null, "Rat must have CollisionShape3D")
+	var rat_model: Node = rat.find_child("RatModel", true, false)
+	assert(rat_model != null, "Rat must have RatModel node containing Quaternius GLB")
+	assert(rat.has_method("apply_explosion_impulse"), "Rat must implement apply_explosion_impulse for shockwave blasts")
+
+	# Rat Creature Definition
+	var rat_def := load("res://resources/creatures/rat.tres") as CreatureDefinition
+	assert(rat_def != null, "rat.tres must load as CreatureDefinition")
+	assert(rat_def.creature_name == "Rat", "rat.tres creature_name must be 'Rat'")
+	assert(rat_def.display_name == "Cave Rat", "rat.tres display_name must be 'Cave Rat'")
+	assert(rat_def.loot_entries.size() > 0, "Rat must have loot entries")
+
+	# Debug Menu Rat Controls
+	var debug_scene := load("res://scenes/ui/DebugMenu.tscn") as PackedScene
+	assert(debug_scene != null, "DebugMenu scene must load")
+	var debug_inst := debug_scene.instantiate()
+	add_child(debug_inst)
+	assert(debug_inst.find_child("SpawnPhysicsRatBtn", true, false) != null, "DebugMenu must have SpawnPhysicsRatBtn")
+	assert(debug_inst.find_child("SpawnSwarmBtn", true, false) != null, "DebugMenu must have SpawnSwarmBtn")
+	assert(debug_inst.find_child("ShockwaveBtn", true, false) != null, "DebugMenu must have ShockwaveBtn")
+	assert(debug_inst.find_child("SpawnRatCreatureBtn", true, false) != null, "DebugMenu must have SpawnRatCreatureBtn")
+	assert(debug_inst.find_child("ClearRatsBtn", true, false) != null, "DebugMenu must have ClearRatsBtn")
+	print("  -> Jolt Physics Engine, Rat Prop, Creature Def & Debug Controls passed.")
+
 	print("==================================================")
-	print("--- ALL 15 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 16 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
+
 
 

@@ -517,7 +517,7 @@ func _check_hit() -> void:
 	var space := get_world_3d().direct_space_state
 
 	var query := PhysicsRayQueryParameters3D.create(origin, end)
-	query.collision_mask = 0b111 # Layers 1 (World), 2 (Player), 3 (Creature)
+	query.collision_mask = 0b1111 # Layers 1 (World), 2 (Player), 3 (Creature), 4 (Physics Props)
 
 	var result := space.intersect_ray(query)
 	if result.is_empty():
@@ -526,6 +526,29 @@ func _check_hit() -> void:
 	var collider: Node = result.get("collider")
 	var hit_pos: Vector3 = result.get("position", end)
 	var hit_norm: Vector3 = result.get("normal", Vector3.UP)
+
+	# Check for RigidBody3D / Physics Props (e.g. Jolt Physics Rats)
+	var rb: RigidBody3D = collider as RigidBody3D
+	if not rb and collider:
+		rb = _find_ancestor_rigidbody(collider)
+	if rb:
+		var hit_dir := (hit_pos - origin).normalized()
+		var force := melee_damage * 0.4
+		if current_tool == ToolType.CLUB:
+			force *= 1.8
+		elif current_tool == ToolType.SPEAR:
+			force *= 1.3
+		var impulse := hit_dir * force + Vector3.UP * (force * 0.35)
+		rb.apply_central_impulse(impulse)
+		var torque := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized() * (force * 0.5)
+		rb.apply_torque_impulse(torque)
+		if rb.has_method("on_tool_hit"):
+			rb.on_tool_hit(current_tool, hit_dir, force)
+		hit_deposit.emit(rb)
+		var am := get_node_or_null("/root/AudioManager")
+		if am and am.has_method("play_sfx"):
+			am.play_sfx(am.SFX.PICKAXE_HIT)
+		return
 
 	# Check for ChoppableTree
 	var tree := _find_ancestor_script(collider, "ChoppableTree")
@@ -561,6 +584,16 @@ func _check_hit() -> void:
 	# World hit (stone walls, cave floors)
 	hit_world.emit(hit_pos, hit_norm)
 	AudioManager.play_sfx(AudioManager.SFX.PICKAXE_HIT)
+
+func _find_ancestor_rigidbody(node: Node) -> RigidBody3D:
+	var cur := node
+	var limit := 8
+	while cur and limit > 0:
+		limit -= 1
+		if cur is RigidBody3D:
+			return cur as RigidBody3D
+		cur = cur.get_parent()
+	return null
 
 func _find_ancestor_script(node: Node, class_name_str: String) -> Node:
 	var cur := node

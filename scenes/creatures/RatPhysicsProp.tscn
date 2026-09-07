@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/RatPhysicsProp.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/creatures/rat/rat.glb" id="2_model"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_rat"]
+friction = 0.75
+bounce = 0.35
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_rat"]
+radius = 0.14
+height = 0.46
+
+[node name="RatPhysicsProp" type="RigidBody3D"]
+collision_layer = 8
+collision_mask = 11
+mass = 1.2
+physics_material_override = SubResource("PhysicsMaterial_rat")
+continuous_cd = true
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.12, 0)
+shape = SubResource("CapsuleShape3D_rat")
+
+[node name="ModelPivot" type="Node3D" parent="."]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
+
+[node name="RatModel" parent="ModelPivot" instance=ExtResource("2_model")]

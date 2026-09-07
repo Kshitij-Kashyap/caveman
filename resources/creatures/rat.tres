@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/CreatureDefinition.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+creature_name = "Rat"
+display_name = "Cave Rat"
+max_health = 15.0
+move_speed = 3.5
+run_speed = 7.0
+attack_damage = 5.0
+attack_range = 0.9
+attack_cooldown = 0.9
+knockback_force = 2.0
+sight_range = 10.0
+alert_range = 6.0
+wander_radius = 8.0
+is_aggressive = false
+flee_health_threshold = 0.6
+ai_states = ["IDLE", "WANDER", "ALERT", "CHASE", "ATTACK", "FLEE", "HURT", "DEAD"]
+visual_scale = Vector3(3.5, 3.5, 3.5)
+body_color = Color(0.42, 0.40, 0.40, 1)
+loot_entries = [{"item_id": "meat", "min_qty": 1, "max_qty": 1, "chance": 0.85}, {"item_id": "hide", "min_qty": 1, "max_qty": 1, "chance": 0.5}]
+kill_value = 5
