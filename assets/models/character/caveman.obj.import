@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bcko08augl6sa"
+path="res://.godot/imported/caveman.obj-d11a2d8124c9105ac10b32f62bbe10c4.mesh"
+
+[deps]
+
+files=["res://.godot/imported/caveman.obj-d11a2d8124c9105ac10b32f62bbe10c4.mesh"]
+
+source_file="res://assets/models/character/caveman.obj"
+dest_files=["res://.godot/imported/caveman.obj-d11a2d8124c9105ac10b32f62bbe10c4.mesh", "res://.godot/imported/caveman.obj-d11a2d8124c9105ac10b32f62bbe10c4.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

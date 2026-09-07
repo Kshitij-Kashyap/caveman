@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="QuestDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+quest_id = "find_hunter"
+quest_name = "THE LOST HUNTER"
+description = "A tribe member went into the cave and never came back. Find them!"
+quest_type = 3
+target_id = "lost_hunter"
+required_quantity = 1
+reward_resources = {"crystal": 2, "bone": 8}
+reward_currency = 120
+required_biome = "any"
+min_level = 1
+max_level = 999

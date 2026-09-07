@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/CreatureDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+creature_name = "Deer"
+display_name = "Cave Deer"
+max_health = 40.0
+move_speed = 3.5
+run_speed = 8.0
+attack_damage = 0.0
+attack_range = 0.0
+attack_cooldown = 99.0
+knockback_force = 0.0
+sight_range = 14.0
+alert_range = 5.0
+wander_radius = 10.0
+is_aggressive = false
+flee_health_threshold = 1.0
+ai_states = ["IDLE", "WANDER", "ALERT", "FLEE", "DEAD"]
+visual_scale = Vector3(0.9, 0.9, 0.9)
+body_color = Color(0.65, 0.55, 0.40, 1)
+loot_entries = [{"item_id": "meat", "min_qty": 2, "max_qty": 4, "chance": 1.0}, {"item_id": "hide", "min_qty": 1, "max_qty": 2, "chance": 0.8}]
+kill_value = 8

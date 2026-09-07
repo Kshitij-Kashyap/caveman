@@ -1,0 +1,193 @@
+## TribeCamp.gd
+## Central hub scene controller.
+## Manages station interactions, first-person InteractableComponent bindings,
+## physical camp props, and expedition launches.
+
+extends Node3D
+
+# ---------------------------------------------------------------------------
+# Node References
+# ---------------------------------------------------------------------------
+@onready var camp_hud: CampHUD = $CampHUD
+@onready var stations_parent: Node3D = $Stations
+@onready var props_parent: Node3D = $Props
+
+# ---------------------------------------------------------------------------
+# Lifecycle
+# ---------------------------------------------------------------------------
+func _ready() -> void:
+	if DisplayServer.get_name() != "headless":
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+	# Auto-accept a default quest if none active
+	if not QuestManager.active_quest:
+		var default_quest := load("res://resources/quests/kill_boars.tres") as QuestDefinition
+		if default_quest:
+			QuestManager.accept_quest(default_quest)
+
+	_setup_stations()
+	_spawn_physics_props()
+
+# ---------------------------------------------------------------------------
+# Station Interactions Setup
+# ---------------------------------------------------------------------------
+func _setup_stations() -> void:
+	if not stations_parent:
+		return
+
+	for child in stations_parent.get_children():
+		# 1. Proximity triggers via CampStation
+		if child is CampStation:
+			child.player_entered.connect(func(_p): camp_hud.show_station_prompt(child))
+			child.player_exited.connect(func(_p): camp_hud.hide_station_prompt(child))
+			child.station_interacted.connect(func(st, pl): _handle_station_interaction(st.station_id, pl))
+
+		# 2. First-Person Raycast target via InteractableComponent
+		var ic := child.get_node_or_null("InteractableComponent") as InteractableComponent
+		if not ic:
+			for sub in child.get_children():
+				if sub is InteractableComponent:
+					ic = sub
+					break
+		if ic:
+			ic.interacted.connect(func(pl): _handle_station_interaction(ic.interactable_id, pl))
+
+func _handle_station_interaction(station_id: String, _player: Player) -> void:
+	AudioManager.play_sfx(AudioManager.SFX.UI_CLICK)
+
+	match station_id:
+		"expedition_gate":
+			camp_hud.show_modal(
+				"EXPEDITION GATE",
+				"Descend into the dark underground caves?\nHunt prehistoric beasts, mine valuable glowing minerals, and extract alive with the tribe's loot!",
+				"START EXPEDITION",
+				_start_expedition
+			)
+		"quest_board":
+			var q_text := "No quest currently selected."
+			if QuestManager.active_quest:
+				q_text = "Active Quest:\n%s\n\nGoal: Eliminate %d beasts.\nReward: %d Bones." % [
+					QuestManager.active_quest.quest_name,
+					QuestManager.active_quest.required_quantity,
+					QuestManager.active_quest.reward_currency
+				]
+			camp_hud.show_modal(
+				"TRIBE QUEST BOARD",
+				q_text,
+				"ACCEPT BOAR HUNT",
+				func():
+					var default_quest := load("res://resources/quests/kill_boars.tres") as QuestDefinition
+					if default_quest:
+						QuestManager.accept_quest(default_quest)
+			)
+		"crafting_fire":
+			camp_hud.show_modal(
+				"CRAFTING FIRE",
+				"The campfire crackles with bright orange embers.\nRoast raw beast meats to heal wounds, and craft sturdy stone tools."
+			)
+		"storage_chest":
+			var stock_text := "Tribe Stockpile:\n"
+			if ProgressionManager.stored_resources.is_empty():
+				stock_text += "No resources stored yet. Mine deposits during cave expeditions!"
+			else:
+				for k in ProgressionManager.stored_resources:
+					stock_text += "• %s: %d\n" % [k.capitalize(), ProgressionManager.stored_resources[k]]
+			camp_hud.show_modal("TRIBE STORAGE", stock_text)
+		"upgrade_station":
+			camp_hud.show_modal(
+				"TRIBE UPGRADES",
+				"Enhance warrior attributes using recovered bones and raw minerals.\nMax Health: +%d | Max Stamina: +%d" % [
+					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.HEALTH_MAX)),
+					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.STAMINA_MAX))
+				]
+			)
+		"character_station":
+			camp_hud.show_modal(
+				"WAR PAINT TOTEM",
+				"Tribal elder marks your warrior's skin with ochre clay and mammoth ash.\nAppearance saved to tribe records."
+			)
+		"elder_npc":
+			camp_hud.show_modal(
+				"TRIBE ELDER OOG",
+				"\"Greetings, hunter! The subterranean caves run deep and treacherous. Watch your stamina, watch each other's backs, and bring back glory to the tribe!\"",
+				"\"HONOR THE TRIBE\""
+			)
+		"camp_center", "camp_bonfire":
+			camp_hud.show_modal(
+				"GREAT BONFIRE",
+				"The blazing heart of the tribe. Flames rise high into the clear blue sky, warming all warriors preparing for the raid."
+			)
+
+func _start_expedition() -> void:
+	if not NetworkManager.is_connected_to_session():
+		NetworkManager.host_game()
+	if DisplayServer.get_name() != "headless":
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	GameManager.start_expedition()
+
+# ---------------------------------------------------------------------------
+# Low-Poly Physics Props Spawning
+# ---------------------------------------------------------------------------
+func _spawn_physics_props() -> void:
+	if not props_parent:
+		return
+
+	var barrel_mesh := load("res://assets/models/camp/primitive_barrel.obj") as Mesh
+	var crate_mesh := load("res://assets/models/camp/primitive_crate.obj") as Mesh
+	var bone_mesh := load("res://assets/models/camp/mammoth_bone.obj") as Mesh
+	var boulder_mesh := load("res://assets/models/camp/boulder.obj") as Mesh
+
+	var prop_configs: Array[Dictionary] = [
+		# Barrels
+		{ "type": "barrel", "pos": Vector3(-4.5, 0.6, 3.2), "size": Vector3(0.45, 0.9, 0.45), "mesh": barrel_mesh },
+		{ "type": "barrel", "pos": Vector3(-5.2, 0.6, 2.7), "size": Vector3(0.45, 0.9, 0.45), "mesh": barrel_mesh },
+		{ "type": "barrel", "pos": Vector3(4.8, 0.6, 4.0), "size": Vector3(0.45, 0.9, 0.45), "mesh": barrel_mesh },
+		# Crates
+		{ "type": "crate",  "pos": Vector3(5.5, 0.5, 2.5), "size": Vector3(0.8, 0.8, 0.8), "mesh": crate_mesh },
+		{ "type": "crate",  "pos": Vector3(5.8, 1.3, 2.5), "size": Vector3(0.7, 0.7, 0.7), "mesh": crate_mesh },
+		{ "type": "crate",  "pos": Vector3(-6.0, 0.5, -2.0), "size": Vector3(0.8, 0.8, 0.8), "mesh": crate_mesh },
+		# Oversized Mammoth Bones
+		{ "type": "bone",   "pos": Vector3(2.0, 0.4, 5.5), "size": Vector3(0.25, 0.85, 0.25), "mesh": bone_mesh },
+		{ "type": "bone",   "pos": Vector3(2.6, 0.4, 5.2), "size": Vector3(0.22, 0.75, 0.22), "mesh": bone_mesh },
+		{ "type": "bone",   "pos": Vector3(-2.2, 0.4, 5.4), "size": Vector3(0.25, 0.9, 0.25), "mesh": bone_mesh },
+		# Pushable Boulders
+		{ "type": "rock",   "pos": Vector3(-3.5, 0.4, -4.5), "size": Vector3(0.7, 0.6, 0.7), "mesh": boulder_mesh },
+		{ "type": "rock",   "pos": Vector3(4.2, 0.4, -3.8), "size": Vector3(0.8, 0.7, 0.8), "mesh": boulder_mesh },
+		{ "type": "rock",   "pos": Vector3(0.0, 0.4, -6.5), "size": Vector3(0.9, 0.8, 0.9), "mesh": boulder_mesh },
+	]
+
+	for cfg in prop_configs:
+		var rb := RigidBody3D.new()
+		rb.name = "Prop_%s" % cfg["type"].capitalize()
+		rb.position = cfg["pos"]
+		rb.mass = 12.0
+		rb.collision_layer = 1 # World
+		rb.collision_mask = 3  # World + Player
+
+		var col := CollisionShape3D.new()
+		var mesh_inst := MeshInstance3D.new()
+		mesh_inst.mesh = cfg["mesh"]
+
+		match cfg["type"]:
+			"barrel":
+				var cyl_shape := CylinderShape3D.new()
+				cyl_shape.radius = cfg["size"].x
+				cyl_shape.height = cfg["size"].y
+				col.shape = cyl_shape
+			"crate":
+				var box_shape := BoxShape3D.new()
+				box_shape.size = cfg["size"]
+				col.shape = box_shape
+			"bone":
+				var cap_shape := CapsuleShape3D.new()
+				cap_shape.radius = cfg["size"].x
+				cap_shape.height = cfg["size"].y
+				col.shape = cap_shape
+			"rock":
+				var sph_shape := SphereShape3D.new()
+				sph_shape.radius = cfg["size"].x * 0.5
+				col.shape = sph_shape
+
+		rb.add_child(col)
+		rb.add_child(mesh_inst)
+		props_parent.add_child(rb)

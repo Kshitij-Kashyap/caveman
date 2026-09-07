@@ -1,0 +1,73 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/Player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player/components/FirstPersonController.gd" id="2_controller"]
+[ext_resource type="Script" path="res://scripts/player/components/FirstPersonCamera.gd" id="3_camera"]
+[ext_resource type="PackedScene" path="res://scenes/player/FirstPersonViewmodel.tscn" id="4_viewmodel"]
+[ext_resource type="PackedScene" path="res://scenes/character/CavemanModel.tscn" id="5_model"]
+[ext_resource type="Script" path="res://scripts/character/CharacterRagdoll.gd" id="6_ragdoll"]
+[ext_resource type="Script" path="res://scripts/player/components/HealthComponent.gd" id="7_health"]
+[ext_resource type="Script" path="res://scripts/player/components/StaminaComponent.gd" id="8_stamina"]
+[ext_resource type="Script" path="res://scripts/player/components/StatusEffectComponent.gd" id="9_status"]
+[ext_resource type="Script" path="res://scripts/player/components/InventoryComponent.gd" id="10_inventory"]
+[ext_resource type="Script" path="res://scripts/player/GlowRockSystem.gd" id="11_glow"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Crosshair.tscn" id="12_crosshair"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.4
+height = 1.8
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="FirstPersonController" type="Node" parent="."]
+script = ExtResource("2_controller")
+
+[node name="FirstPersonCamera" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+script = ExtResource("3_camera")
+
+[node name="Camera3D" type="Camera3D" parent="FirstPersonCamera"]
+current = true
+fov = 75.0
+
+[node name="InteractRaycast" type="RayCast3D" parent="FirstPersonCamera"]
+target_position = Vector3(0, 0, -3.2)
+collision_mask = 31
+collide_with_areas = true
+collide_with_bodies = true
+
+[node name="FirstPersonViewmodel" parent="FirstPersonCamera" instance=ExtResource("4_viewmodel")]
+
+[node name="CavemanModel" parent="." instance=ExtResource("5_model")]
+
+[node name="CharacterRagdoll" type="Node3D" parent="."]
+script = ExtResource("6_ragdoll")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("7_health")
+
+[node name="StaminaComponent" type="Node" parent="."]
+script = ExtResource("8_stamina")
+
+[node name="StatusEffectComponent" type="Node" parent="."]
+script = ExtResource("9_status")
+
+[node name="InventoryComponent" type="Node" parent="."]
+script = ExtResource("10_inventory")
+
+[node name="GlowRockSystem" type="Node" parent="."]
+script = ExtResource("11_glow")
+
+[node name="FirstPersonHUD" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="Crosshair" parent="FirstPersonHUD" instance=ExtResource("12_crosshair")]
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

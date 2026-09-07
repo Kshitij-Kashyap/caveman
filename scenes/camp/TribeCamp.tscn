@@ -1,0 +1,574 @@
+[gd_scene load_steps=31 format=3]
+
+[ext_resource type="Script" path="res://scripts/camp/TribeCamp.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/network/PlayerSpawner.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/camp/CampStation.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/camp/CampHUD.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/interactables/InteractableComponent.gd" id="5"]
+[ext_resource type="Mesh" path="res://assets/models/camp/palm_tree.obj" id="6"]
+[ext_resource type="Mesh" path="res://assets/models/camp/primitive_hut.obj" id="7"]
+[ext_resource type="Mesh" path="res://assets/models/camp/mammoth_bone.obj" id="8"]
+[ext_resource type="Mesh" path="res://assets/models/camp/boulder.obj" id="9"]
+[ext_resource type="Mesh" path="res://assets/models/camp/primitive_crate.obj" id="10"]
+[ext_resource type="Mesh" path="res://assets/models/camp/primitive_barrel.obj" id="11"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_camp"]
+sky_top_color = Color(0.22, 0.58, 0.98, 1)
+sky_horizon_color = Color(0.7, 0.88, 1, 1)
+ground_bottom_color = Color(0.24, 0.46, 0.2, 1)
+ground_horizon_color = Color(0.48, 0.74, 0.35, 1)
+sun_angle_max = 30.0
+
+[sub_resource type="Sky" id="Sky_camp"]
+sky_material = SubResource("ProceduralSkyMaterial_camp")
+
+[sub_resource type="Environment" id="Environment_camp"]
+background_mode = 2
+sky = SubResource("Sky_camp")
+ambient_light_source = 3
+ambient_light_color = Color(0.85, 0.92, 1, 1)
+ambient_light_sky_contribution = 0.65
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.3
+fog_enabled = true
+fog_light_color = Color(0.72, 0.85, 0.96, 1)
+fog_density = 0.003
+fog_depth_begin = 35.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(90, 0.5, 90)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(90, 0.5, 90)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ground"]
+albedo_color = Color(0.34, 0.66, 0.26, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_station"]
+height = 2.5
+radius = 2.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_gate"]
+size = Vector3(5, 4.5, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_stone_gate"]
+albedo_color = Color(0.38, 0.36, 0.34, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_board"]
+size = Vector3(2.5, 2.0, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wood"]
+albedo_color = Color(0.48, 0.32, 0.16, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pit"]
+top_radius = 1.4
+bottom_radius = 1.6
+height = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_fire_pit"]
+albedo_color = Color(0.25, 0.22, 0.2, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_totem"]
+albedo_color = Color(0.68, 0.48, 0.25, 1)
+roughness = 0.85
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_HUDPrompt"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.12, 0.1, 0.08, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.3, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ModalPanel"]
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+bg_color = Color(0.11, 0.09, 0.07, 0.92)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.65, 0.25, 0.85)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_left = 16
+corner_radius_bottom_right = 16
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_HUDActionBtn"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.35, 0.24, 0.14, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.82, 0.35, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_HUDCloseBtn"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.2, 0.16, 0.13, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.5, 0.4, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[node name="TribeCamp" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_camp")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.327429, 0.471397, 0, 0.821394, 0.57036, -0.573576, -0.467211, 0.672847, 0, 20, 0)
+light_color = Color(1, 0.96, 0.86, 1)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+position = Vector3(0, -0.25, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+position = Vector3(0, -0.25, 0)
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("Mat_ground")
+
+[node name="SpawnPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 8)
+
+[node name="CampOverviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 6, 16)
+fov = 55.0
+
+[node name="PlayerSpawner" type="Node" parent="." node_paths=PackedStringArray("spawn_point")]
+script = ExtResource("2")
+spawn_point = NodePath("../SpawnPoint")
+
+[node name="PerimeterScenery" type="Node3D" parent="."]
+
+[node name="Hut1" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.4, 0, 0.5, 0, 1.5, 0, -0.5, 0, 1.4, -18, 0, -12)
+mesh = ExtResource("7")
+
+[node name="Hut2" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.4, 0, -0.5, 0, 1.5, 0, 0.5, 0, 1.4, 18, 0, -12)
+mesh = ExtResource("7")
+
+[node name="Hut3" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.2, 0, 0.9, 0, 1.5, 0, -0.9, 0, 1.2, -18, 0, 10)
+mesh = ExtResource("7")
+
+[node name="Hut4" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.2, 0, -0.9, 0, 1.5, 0, 0.9, 0, 1.2, 18, 0, 10)
+mesh = ExtResource("7")
+
+[node name="Palm1" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.2, 0, 0, 0, 1.3, 0, 0, 0, 1.2, -14, 0, -18)
+mesh = ExtResource("6")
+
+[node name="Palm2" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.1, 0, 0.3, 0, 1.2, 0, -0.3, 0, 1.1, 14, 0, -18)
+mesh = ExtResource("6")
+
+[node name="Palm3" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.3, 0, -0.2, 0, 1.4, 0, 0.2, 0, 1.3, -22, 0, 0)
+mesh = ExtResource("6")
+
+[node name="Palm4" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.2, 0, 0.4, 0, 1.3, 0, -0.4, 0, 1.2, 22, 0, 0)
+mesh = ExtResource("6")
+
+[node name="Palm5" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.1, 0, -0.3, 0, 1.2, 0, 0.3, 0, 1.1, -12, 0, 16)
+mesh = ExtResource("6")
+
+[node name="Palm6" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.2, 0, 0.2, 0, 1.3, 0, -0.2, 0, 1.2, 12, 0, 16)
+mesh = ExtResource("6")
+
+[node name="Palm7" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1, 0, -0.4, 0, 1.1, 0, 0.4, 0, 1, 5, 0, -15)
+mesh = ExtResource("6")
+
+[node name="Boulder1" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.8, 0, 0, 0, 1.4, 0, 0, 0, 1.8, -6, 0, -22)
+mesh = ExtResource("9")
+
+[node name="Boulder2" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.6, 0, 0.5, 0, 1.5, 0, -0.5, 0, 1.6, 6, 0, -22)
+mesh = ExtResource("9")
+
+[node name="Boulder3" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(2, 0, -0.3, 0, 1.6, 0, 0.3, 0, 2, -24, 0, -8)
+mesh = ExtResource("9")
+
+[node name="Boulder4" type="MeshInstance3D" parent="PerimeterScenery"]
+transform = Transform3D(1.9, 0, 0.4, 0, 1.5, 0, -0.4, 0, 1.9, 24, 0, -8)
+mesh = ExtResource("9")
+
+[node name="Stations" type="Node3D" parent="."]
+
+[node name="ExpeditionGate" type="Area3D" parent="Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -18)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "expedition_gate"
+station_name = "Expedition Gate"
+prompt_action = "ENTER CAVE"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/ExpeditionGate"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="GateMesh" type="MeshInstance3D" parent="Stations/ExpeditionGate"]
+position = Vector3(0, 2.25, 0)
+mesh = SubResource("BoxMesh_gate")
+surface_material_override/0 = SubResource("Mat_stone_gate")
+
+[node name="MammothArch" type="MeshInstance3D" parent="Stations/ExpeditionGate"]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0.5, 0.5)
+mesh = ExtResource("8")
+
+[node name="GateLight" type="OmniLight3D" parent="Stations/ExpeditionGate"]
+position = Vector3(0, 3, 1)
+light_color = Color(0.35, 0.85, 1, 1)
+light_energy = 3.0
+omni_range = 9.0
+
+[node name="InteractableComponent" type="Node" parent="Stations/ExpeditionGate"]
+script = ExtResource("5")
+interactable_id = "expedition_gate"
+interactable_name = "Expedition Gate"
+prompt_action = "ENTER EXPEDITION"
+target_type = "gate"
+
+[node name="QuestBoard" type="Area3D" parent="Stations"]
+transform = Transform3D(0.939693, 0, 0.34202, 0, 1, 0, -0.34202, 0, 0.939693, -10, 0, -8)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "quest_board"
+station_name = "Quest Board"
+prompt_action = "VIEW QUESTS"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/QuestBoard"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="BoardMesh" type="MeshInstance3D" parent="Stations/QuestBoard"]
+position = Vector3(0, 1.6, 0)
+mesh = SubResource("BoxMesh_board")
+surface_material_override/0 = SubResource("Mat_wood")
+
+[node name="InteractableComponent" type="Node" parent="Stations/QuestBoard"]
+script = ExtResource("5")
+interactable_id = "quest_board"
+interactable_name = "Quest Board"
+prompt_action = "VIEW QUESTS"
+target_type = "station"
+
+[node name="CraftingFire" type="Area3D" parent="Stations"]
+transform = Transform3D(0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, 0.939693, 10, 0, -8)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "crafting_fire"
+station_name = "Crafting Fire"
+prompt_action = "COOK & CRAFT"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/CraftingFire"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="FireMesh" type="MeshInstance3D" parent="Stations/CraftingFire"]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("CylinderMesh_pit")
+surface_material_override/0 = SubResource("Mat_fire_pit")
+
+[node name="FireLight" type="OmniLight3D" parent="Stations/CraftingFire"]
+position = Vector3(0, 1, 0)
+light_color = Color(1, 0.6, 0.2, 1)
+light_energy = 3.5
+omni_range = 9.0
+
+[node name="InteractableComponent" type="Node" parent="Stations/CraftingFire"]
+script = ExtResource("5")
+interactable_id = "crafting_fire"
+interactable_name = "Crafting Fire"
+prompt_action = "COOK & CRAFT"
+target_type = "station"
+
+[node name="StorageChest" type="Area3D" parent="Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 4)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "storage_chest"
+station_name = "Tribe Stockpile"
+prompt_action = "OPEN STORAGE"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/StorageChest"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="CrateMesh" type="MeshInstance3D" parent="Stations/StorageChest"]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0, 0)
+mesh = ExtResource("10")
+
+[node name="InteractableComponent" type="Node" parent="Stations/StorageChest"]
+script = ExtResource("5")
+interactable_id = "storage_chest"
+interactable_name = "Tribe Stockpile"
+prompt_action = "OPEN STORAGE"
+target_type = "chest"
+
+[node name="UpgradeStation" type="Area3D" parent="Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "upgrade_station"
+station_name = "Tribe Upgrades"
+prompt_action = "TRIBE ENHANCEMENTS"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/UpgradeStation"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="TotemMesh" type="MeshInstance3D" parent="Stations/UpgradeStation"]
+position = Vector3(0, 1.8, 0)
+mesh = SubResource("BoxMesh_board")
+surface_material_override/0 = SubResource("Mat_totem")
+
+[node name="TotemBone" type="MeshInstance3D" parent="Stations/UpgradeStation"]
+transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 0, 2.5, 0)
+mesh = ExtResource("8")
+
+[node name="InteractableComponent" type="Node" parent="Stations/UpgradeStation"]
+script = ExtResource("5")
+interactable_id = "upgrade_station"
+interactable_name = "Tribe Upgrades"
+prompt_action = "UPGRADE STATS"
+target_type = "station"
+
+[node name="CharacterStation" type="Area3D" parent="Stations"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, -6, 0, 12)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "character_station"
+station_name = "War Paint Totem"
+prompt_action = "WAR PAINT"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/CharacterStation"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="AltarMesh" type="MeshInstance3D" parent="Stations/CharacterStation"]
+position = Vector3(0, 1.8, 0)
+mesh = SubResource("BoxMesh_board")
+surface_material_override/0 = SubResource("Mat_totem")
+
+[node name="InteractableComponent" type="Node" parent="Stations/CharacterStation"]
+script = ExtResource("5")
+interactable_id = "character_station"
+interactable_name = "War Paint Totem"
+prompt_action = "WAR PAINT"
+target_type = "station"
+
+[node name="NPCArea" type="Area3D" parent="Stations"]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 6, 0, 12)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "elder_npc"
+station_name = "Tribe Elder Oog"
+prompt_action = "TALK TO ELDER"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/NPCArea"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="ElderSeatMesh" type="MeshInstance3D" parent="Stations/NPCArea"]
+position = Vector3(0, 0.5, 0)
+mesh = ExtResource("11")
+
+[node name="InteractableComponent" type="Node" parent="Stations/NPCArea"]
+script = ExtResource("5")
+interactable_id = "elder_npc"
+interactable_name = "Tribe Elder Oog"
+prompt_action = "TALK TO ELDER"
+target_type = "npc"
+
+[node name="CampCenter" type="Area3D" parent="Stations"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+collision_layer = 16
+collision_mask = 2
+script = ExtResource("3")
+station_id = "camp_center"
+station_name = "Great Bonfire"
+prompt_action = "REST"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Stations/CampCenter"]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape3D_station")
+
+[node name="PitMesh" type="MeshInstance3D" parent="Stations/CampCenter"]
+position = Vector3(0, 0.2, 0)
+mesh = SubResource("CylinderMesh_pit")
+surface_material_override/0 = SubResource("Mat_fire_pit")
+
+[node name="BonfireLight" type="OmniLight3D" parent="Stations/CampCenter"]
+position = Vector3(0, 1.5, 0)
+light_color = Color(1, 0.55, 0.15, 1)
+light_energy = 4.5
+shadow_enabled = true
+omni_range = 14.0
+
+[node name="InteractableComponent" type="Node" parent="Stations/CampCenter"]
+script = ExtResource("5")
+interactable_id = "camp_center"
+interactable_name = "Great Bonfire"
+prompt_action = "REST AT FIRE"
+target_type = "station"
+
+[node name="Props" type="Node3D" parent="."]
+
+[node name="CampHUD" type="CanvasLayer" parent="."]
+script = ExtResource("4")
+
+[node name="PromptContainer" type="PanelContainer" parent="CampHUD"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -120.0
+offset_right = 260.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_HUDPrompt")
+
+[node name="PromptLabel" type="Label" parent="CampHUD/PromptContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.72, 1)
+theme_override_font_sizes/font_size = 20
+text = "[E] INTERACT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopRight" type="MarginContainer" parent="CampHUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_bottom = 100.0
+grow_horizontal = 0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="CampHUD/TopRight"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CurrencyLabel" type="Label" parent="CampHUD/TopRight/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "🦴 0 BONES"
+horizontal_alignment = 2
+
+[node name="ResourcesLabel" type="Label" parent="CampHUD/TopRight/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.75, 1)
+theme_override_font_sizes/font_size = 14
+text = "Stockpile: Empty"
+horizontal_alignment = 2
+
+[node name="ModalContainer" type="CenterContainer" parent="CampHUD"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CampHUD/ModalContainer"]
+custom_minimum_size = Vector2(520, 280)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ModalPanel")
+
+[node name="VBox" type="VBoxContainer" parent="CampHUD/ModalContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ModalTitle" type="Label" parent="CampHUD/ModalContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.78, 0.32, 1)
+theme_override_font_sizes/font_size = 24
+text = "STATION TITLE"
+horizontal_alignment = 1
+
+[node name="ModalBody" type="Label" parent="CampHUD/ModalContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.92, 0.88, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "Station message text..."
+autowrap_mode = 3
+
+[node name="ActionBtn" type="Button" parent="CampHUD/ModalContainer/Panel/VBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_HUDActionBtn")
+text = "CONFIRM"
+
+[node name="CloseBtn" type="Button" parent="CampHUD/ModalContainer/Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.75, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_HUDCloseBtn")
+text = "CLOSE"

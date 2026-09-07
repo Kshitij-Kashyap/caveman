@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cwgn6a6hvbohm"
+path="res://.godot/imported/part_torso.obj-b06d4a45f7b9c2a55751eb26e4358bc2.mesh"
+
+[deps]
+
+files=["res://.godot/imported/part_torso.obj-b06d4a45f7b9c2a55751eb26e4358bc2.mesh"]
+
+source_file="res://assets/models/character/part_torso.obj"
+dest_files=["res://.godot/imported/part_torso.obj-b06d4a45f7b9c2a55751eb26e4358bc2.mesh", "res://.godot/imported/part_torso.obj-b06d4a45f7b9c2a55751eb26e4358bc2.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

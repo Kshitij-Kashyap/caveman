@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/CreatureDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+creature_name = "Cave Bear"
+display_name = "Cave Bear"
+max_health = 200.0
+move_speed = 2.5
+run_speed = 6.0
+attack_damage = 30.0
+attack_range = 2.2
+attack_cooldown = 2.0
+knockback_force = 14.0
+sight_range = 10.0
+alert_range = 4.0
+wander_radius = 6.0
+is_aggressive = true
+flee_health_threshold = 0.0
+ai_states = ["IDLE", "WANDER", "ALERT", "CHASE", "ATTACK", "HURT", "DEAD"]
+visual_scale = Vector3(1.3, 1.3, 1.3)
+body_color = Color(0.30, 0.22, 0.15, 1)
+loot_entries = [{"item_id": "hide", "min_qty": 2, "max_qty": 3, "chance": 1.0}, {"item_id": "meat", "min_qty": 4, "max_qty": 8, "chance": 1.0}, {"item_id": "bone", "min_qty": 2, "max_qty": 4, "chance": 0.9}]
+kill_value = 40

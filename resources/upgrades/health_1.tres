@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/UpgradeDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = "health_1"
+upgrade_name = "Tough Hide Vest"
+description = "Wear a boar's hide for extra protection. +25 max health."
+effect_type = 0
+effect_value = 25.0
+cost_resources = {"hide": 5, "bone": 3}
+prerequisites = []

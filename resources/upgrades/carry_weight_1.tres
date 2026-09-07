@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/UpgradeDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = "carry_weight_1"
+upgrade_name = "Stone Pack Frame"
+description = "A sturdy stone-reinforced pack frame. +15 carry weight."
+effect_type = 2
+effect_value = 15.0
+cost_resources = {"stone": 10, "bone": 2}
+prerequisites = []

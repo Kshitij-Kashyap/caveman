@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/progression/UpgradeDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+upgrade_id = "stamina_1"
+upgrade_name = "Wind-Runner Legs"
+description = "Bone-wrap your legs for endurance. +30 max stamina."
+effect_type = 1
+effect_value = 30.0
+cost_resources = {"bone": 4, "flint": 2}
+prerequisites = []

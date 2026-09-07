@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="QuestDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/quests/QuestDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+quest_id = "kill_boars"
+quest_name = "BOAR BRAWL"
+description = "Five boars have been causing trouble near the camp. Hunt them down!"
+quest_type = 1
+target_id = "Boar"
+required_quantity = 5
+reward_resources = {"meat": 10, "hide": 5, "bone": 3}
+reward_currency = 80
+required_biome = "any"
+min_level = 1
+max_level = 999

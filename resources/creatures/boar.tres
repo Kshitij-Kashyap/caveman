@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CreatureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/CreatureDefinition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+creature_name = "Boar"
+display_name = "Cave Boar"
+max_health = 80.0
+move_speed = 3.0
+run_speed = 7.5
+attack_damage = 18.0
+attack_range = 1.5
+attack_cooldown = 1.8
+knockback_force = 8.0
+sight_range = 10.0
+alert_range = 5.0
+wander_radius = 8.0
+is_aggressive = true
+flee_health_threshold = 0.0
+ai_states = ["IDLE", "WANDER", "ALERT", "CHASE", "ATTACK", "HURT", "DEAD"]
+visual_scale = Vector3(1.0, 0.85, 1.0)
+body_color = Color(0.40, 0.30, 0.22, 1)
+loot_entries = [{"item_id": "meat", "min_qty": 3, "max_qty": 6, "chance": 1.0}, {"item_id": "hide", "min_qty": 1, "max_qty": 2, "chance": 0.9}, {"item_id": "bone", "min_qty": 1, "max_qty": 2, "chance": 0.6}]
+kill_value = 15

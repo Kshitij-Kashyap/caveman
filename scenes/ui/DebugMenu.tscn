@@ -1,0 +1,102 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DebugMenu.gd" id="1_debug"]
+
+[node name="DebugMenu" type="CanvasLayer"]
+script = ExtResource("1_debug")
+layer = 100
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -320.0
+offset_bottom = 620.0
+visible = false
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+text = "▶ DEBUG MENU (F1)"
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+
+[node name="SeedRow" type="HBoxContainer" parent="Panel/VBox"]
+
+[node name="SeedLabel" type="Label" parent="Panel/VBox/SeedRow"]
+text = "Seed:"
+custom_minimum_size = Vector2(50, 0)
+theme_override_font_sizes/font_size = 12
+
+[node name="SeedInput" type="LineEdit" parent="Panel/VBox/SeedRow"]
+size_flags_horizontal = 3
+placeholder_text = "random"
+theme_override_font_sizes/font_size = 12
+
+[node name="RegenBtn" type="Button" parent="Panel/VBox"]
+text = "🗺 Regen Dungeon"
+theme_override_font_sizes/font_size = 12
+
+[node name="Sep1" type="HSeparator" parent="Panel/VBox"]
+
+[node name="SpawnDeer" type="Button" parent="Panel/VBox"]
+text = "Spawn Deer"
+theme_override_font_sizes/font_size = 12
+
+[node name="SpawnBoar" type="Button" parent="Panel/VBox"]
+text = "Spawn Boar"
+theme_override_font_sizes/font_size = 12
+
+[node name="SpawnWolf" type="Button" parent="Panel/VBox"]
+text = "Spawn Wolf"
+theme_override_font_sizes/font_size = 12
+
+[node name="SpawnBear" type="Button" parent="Panel/VBox"]
+text = "Spawn Bear"
+theme_override_font_sizes/font_size = 12
+
+[node name="Sep2" type="HSeparator" parent="Panel/VBox"]
+
+[node name="GiveResBtn" type="Button" parent="Panel/VBox"]
+text = "💰 Give All Resources"
+theme_override_font_sizes/font_size = 12
+
+[node name="CompleteQuestBtn" type="Button" parent="Panel/VBox"]
+text = "✅ Complete Quest"
+theme_override_font_sizes/font_size = 12
+
+[node name="TeleportExtBtn" type="Button" parent="Panel/VBox"]
+text = "📍 Teleport → Extraction"
+theme_override_font_sizes/font_size = 12
+
+[node name="ToggleAIBtn" type="Button" parent="Panel/VBox"]
+text = "🤖 Toggle AI"
+theme_override_font_sizes/font_size = 12
+
+[node name="Sep3" type="HSeparator" parent="Panel/VBox"]
+
+[node name="MenuBtn" type="Button" parent="Panel/VBox"]
+text = "← Main Menu"
+theme_override_font_sizes/font_size = 12
+
+[node name="StatusLabel" type="Label" parent="Panel/VBox"]
+text = ""
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+
+[connection signal="pressed" from="Panel/VBox/RegenBtn" to="." method="_on_regen_dungeon"]
+[connection signal="pressed" from="Panel/VBox/SpawnDeer" to="." method="_on_spawn_deer"]
+[connection signal="pressed" from="Panel/VBox/SpawnBoar" to="." method="_on_spawn_boar"]
+[connection signal="pressed" from="Panel/VBox/SpawnWolf" to="." method="_on_spawn_wolf"]
+[connection signal="pressed" from="Panel/VBox/SpawnBear" to="." method="_on_spawn_bear"]
+[connection signal="pressed" from="Panel/VBox/GiveResBtn" to="." method="_on_give_all_resources"]
+[connection signal="pressed" from="Panel/VBox/CompleteQuestBtn" to="." method="_on_complete_quest"]
+[connection signal="pressed" from="Panel/VBox/TeleportExtBtn" to="." method="_on_teleport_extraction"]
+[connection signal="pressed" from="Panel/VBox/ToggleAIBtn" to="." method="_on_toggle_ai"]
+[connection signal="pressed" from="Panel/VBox/MenuBtn" to="." method="_on_return_to_menu"]
+
