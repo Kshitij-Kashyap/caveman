@@ -19,8 +19,8 @@ func _ready() -> void:
 	assert(loaded.skin_color.is_equal_approx(data.skin_color), "Loaded skin color should match saved")
 	print("  -> CharacterCustomizationData passed.")
 
-	# 2. Test CavemanModel
-	print("[2/10] Testing CavemanModel...")
+	# 2. Test CavemanModel (Rafael Rigged Character)
+	print("[2/10] Testing CavemanModel (Rafael Rigged Character)...")
 	var model_scene := load("res://scenes/character/CavemanModel.tscn") as PackedScene
 	assert(model_scene != null, "CavemanModel scene should load")
 	var model := model_scene.instantiate() as CavemanModel
@@ -29,9 +29,23 @@ func _ready() -> void:
 	assert(model.torso != null, "Torso should be generated")
 	assert(model.head != null, "Head should be generated")
 	assert(model.mat_skin.albedo_color.is_equal_approx(data.skin_color), "Skin material color should match")
+	assert(model.use_rigged_character, "Should use rigged character by default")
+	assert(model.skeleton != null, "Skeleton3D must be loaded")
+	assert(model.skeleton.get_bone_count() == 52, "Skeleton3D must have 52 Mixamo bones")
+	assert(model.anim_player != null, "AnimationPlayer must exist")
+	assert(model.anim_player.has_animation("idle"), "Must have 'idle' animation")
+	assert(model.anim_player.has_animation("walk"), "Must have 'walk' animation")
+	assert(model.mat_rigged != null, "ShaderMaterial must exist for rigged character")
+	# Test animation switching
+	model.is_moving = true
+	model._process(0.016)
+	assert(model.anim_player.current_animation == "walk", "Walking state must play 'walk'")
+	model.is_moving = false
+	model._process(0.016)
+	assert(model.anim_player.current_animation == "idle", "Idle state must play 'idle'")
 	var obj_mesh := load("res://assets/models/character/caveman.obj") as Mesh
 	assert(obj_mesh != null, "caveman.obj should load as Mesh")
-	print("  -> CavemanModel passed.")
+	print("  -> CavemanModel (Rafael Rigged Character) passed.")
 
 	# 3. Test CharacterPreview with sunny 3D camp scene
 	print("[3/10] Testing CharacterPreview with sunny 3D camp scene...")
