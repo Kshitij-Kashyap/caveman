@@ -8,6 +8,8 @@
 [ext_resource type="Mesh" uid="uid://dnem3d162dgg4" path="res://assets/models/camp/boulder.obj" id="6"]
 [ext_resource type="Mesh" uid="uid://byuua6dk5k2yl" path="res://assets/models/camp/primitive_crate.obj" id="7"]
 [ext_resource type="Mesh" uid="uid://bu47ci1d8of3g" path="res://assets/models/camp/primitive_barrel.obj" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/camp/Campfire.tscn" id="11_campfire"]
+[ext_resource type="PackedScene" path="res://scenes/nature/PolyTree.tscn" id="12_tree"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.24, 0.58, 0.96, 1)
@@ -103,16 +105,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0, 0)
 
 [node name="CavemanModel" parent="SubViewport/ModelPivot" instance=ExtResource("2")]
 
-[node name="Campfire" type="MeshInstance3D" parent="SubViewport"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, -0.05, -1.1)
-mesh = SubResource("CylinderMesh_campfire")
-surface_material_override/0 = SubResource("Mat_fire_glow")
+[node name="Campfire" parent="SubViewport" instance=ExtResource("11_campfire")]
+transform = Transform3D(0.65, 0, 0, 0, 0.65, 0, 0, 0, 0.65, 0.9, -0.05, -1.1)
 
-[node name="CampfireLight" type="OmniLight3D" parent="SubViewport/Campfire"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
-light_color = Color(1, 0.55, 0.15, 1)
-light_energy = 2.4
-omni_range = 5.0
+[node name="PolyTreePreview" parent="SubViewport" instance=ExtResource("12_tree")]
+transform = Transform3D(0.8, 0, 0.2, 0, 0.8, 0, -0.2, 0, 0.8, -4.6, -0.1, -2.8)
+
 
 [node name="PalmTree1" type="MeshInstance3D" parent="SubViewport"]
 transform = Transform3D(1.1, 0, 0.4, 0, 1.2, 0, -0.4, 0, 1.1, 2.6, -0.1, -3.8)

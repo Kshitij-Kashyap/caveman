@@ -1,0 +1,3 @@
+newmtl mat_campfire
+map_Kd campfire_palette.png
+Kd 1.0 1.0 1.0

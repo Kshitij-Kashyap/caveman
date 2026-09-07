@@ -261,8 +261,77 @@ func _ready() -> void:
 	assert(inv.has_item("wood", 4), "Inventory must contain 4 wood")
 	print("  -> Wood Resource & Inventory Collection passed.")
 
+	# 13. Test Animated Campfire (Poly by Google)
+	print("[13/15] Testing Animated Campfire (Poly by Google)...")
+	var campfire_scene := load("res://scenes/camp/Campfire.tscn") as PackedScene
+	assert(campfire_scene != null, "Campfire scene must load")
+	var campfire := campfire_scene.instantiate() as Campfire
+	add_child(campfire)
+	assert(campfire.flames_node != null, "Campfire must have Flames node")
+	assert(campfire.flame_mesh != null and campfire.flame_mesh.mesh != null, "Campfire flame mesh must be loaded")
+	assert(campfire.fire_light != null, "Campfire must have FireLight OmniLight3D")
+	assert(campfire.is_flame_animated(), "Campfire flame must report as animated")
+
+	# Test shader on flame mesh
+	var flame_mat := campfire.flame_mesh.get_surface_override_material(0)
+	assert(flame_mat is ShaderMaterial, "Campfire flame must use ShaderMaterial for animated vertex flicker")
+
+	# Test dynamic flame breathing scale over time
+	campfire._process(0.15)
+	var s1 := campfire.flames_node.scale
+	campfire._process(0.25)
+	var s2 := campfire.flames_node.scale
+	assert(s1 != s2, "Campfire flame scale must animate dynamically across frames")
+
+	# Test extinguish and reignite
+	campfire.set_lit(false)
+	assert(not campfire.flames_node.visible, "Flames should hide when extinguished")
+	campfire.set_lit(true)
+	assert(campfire.flames_node.visible, "Flames should show when reignited")
+	print("  -> Animated Campfire passed.")
+
+	# 14. Test Wood Log Model & Loot Integration (Quaternius)
+	print("[14/15] Testing Wood Log Model & Loot Integration (Quaternius)...")
+	var log_prop_scene := load("res://scenes/items/WoodLogProp.tscn") as PackedScene
+	assert(log_prop_scene != null, "WoodLogProp scene must load")
+	var log_prop := log_prop_scene.instantiate()
+	add_child(log_prop)
+	var log_mesh_inst: MeshInstance3D = log_prop.find_child("MeshInstance3D", true, false)
+	assert(log_mesh_inst != null and log_mesh_inst.mesh != null, "WoodLogProp must have Quaternius mesh")
+	assert(log_prop.find_child("CollisionShape3D", true, false) != null, "WoodLogProp must have CollisionShape3D")
+
+	# Verify LootItem displays Quaternius wood log when item_id == 'wood'
+	var loot_scene := load("res://scenes/items/LootItem.tscn") as PackedScene
+	assert(loot_scene != null, "LootItem scene must load")
+	var loot := loot_scene.instantiate() as LootItem
+	add_child(loot)
+	loot.setup("wood", 3)
+	var loot_mesh: MeshInstance3D = loot.find_child("MeshInstance3D", true, false)
+	assert(loot_mesh != null and loot_mesh.mesh != null, "LootItem must have mesh instance")
+	assert(loot_mesh.mesh.resource_path.ends_with("wood_log.obj") or loot_mesh.mesh.get_name() == "wood_log", "LootItem wood must use Quaternius wood log mesh")
+	print("  -> Wood Log Model & Loot Integration passed.")
+
+	# 15. Test Poly Tree & Choppable Poly Tree (Poly by Google)
+	print("[15/15] Testing Poly Tree & Choppable Poly Tree (Poly by Google)...")
+	var polytree_scene := load("res://scenes/nature/PolyTree.tscn") as PackedScene
+	assert(polytree_scene != null, "PolyTree scene must load")
+	var polytree := polytree_scene.instantiate()
+	add_child(polytree)
+	var p_mesh: MeshInstance3D = polytree.find_child("MeshInstance3D", true, false)
+	assert(p_mesh != null and p_mesh.mesh != null, "PolyTree must have Google Poly tree mesh")
+
+	var choppable_poly_scene := load("res://scenes/items/ChoppablePolyTree.tscn") as PackedScene
+	assert(choppable_poly_scene != null, "ChoppablePolyTree scene must load")
+	var choppable_poly := choppable_poly_scene.instantiate() as ChoppableTree
+	add_child(choppable_poly)
+	assert(choppable_poly.current_health == 5, "ChoppablePolyTree initial health should be 5")
+	choppable_poly.on_hit(1.0, true)
+	assert(choppable_poly.current_health < 5, "ChoppablePolyTree should take axe chopping damage")
+	print("  -> Poly Tree & Choppable Poly Tree passed.")
+
 	print("==================================================")
-	print("--- ALL 12 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 15 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
+
 

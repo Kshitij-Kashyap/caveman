@@ -1,0 +1,65 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/camp/Campfire.gd" id="1_script"]
+[ext_resource type="ArrayMesh" path="res://assets/models/camp/campfire_base.obj" id="2_base"]
+[ext_resource type="ArrayMesh" path="res://assets/models/camp/campfire_flames.obj" id="3_flames"]
+[ext_resource type="Texture2D" path="res://assets/models/camp/campfire_palette.png" id="4_palette"]
+[ext_resource type="Shader" path="res://shaders/campfire_flame.gdshader" id="5_shader"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_CampfireBase"]
+albedo_texture = ExtResource("4_palette")
+roughness = 0.85
+
+[sub_resource type="ShaderMaterial" id="Mat_CampfireFlames"]
+render_priority = 0
+shader = ExtResource("5_shader")
+shader_parameter/flame_core_color = Color(1, 0.85, 0.25, 1)
+shader_parameter/flame_tip_color = Color(1, 0.35, 0.05, 1)
+shader_parameter/emission_strength = 3.8
+shader_parameter/animation_speed = 5.2
+shader_parameter/wave_amplitude = 0.07
+shader_parameter/albedo_texture = ExtResource("4_palette")
+
+[sub_resource type="StandardMaterial3D" id="Mat_Embers"]
+shading_mode = 0
+albedo_color = Color(1, 0.75, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_Ember"]
+material = SubResource("Mat_Embers")
+size = Vector3(0.04, 0.04, 0.04)
+
+[node name="Campfire" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="BaseMesh" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_base")
+surface_material_override/0 = SubResource("Mat_CampfireBase")
+
+[node name="Flames" type="Node3D" parent="."]
+
+[node name="FlameMesh" type="MeshInstance3D" parent="Flames"]
+mesh = ExtResource("3_flames")
+surface_material_override/0 = SubResource("Mat_CampfireFlames")
+
+[node name="FireLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 0.7, 0)
+light_color = Color(1, 0.58, 0.16, 1)
+light_energy = 3.6
+shadow_enabled = true
+omni_range = 8.0
+
+[node name="Embers" type="CPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+amount = 16
+lifetime = 1.2
+mesh = SubResource("BoxMesh_Ember")
+emission_shape = 3
+emission_box_extents = Vector3(0.2, 0.1, 0.2)
+direction = Vector3(0, 1, 0)
+spread = 22.0
+gravity = Vector3(0, 0.5, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 2.2
+scale_amount_min = 0.6
+scale_amount_max = 1.2
+color = Color(1, 0.8, 0.25, 1)

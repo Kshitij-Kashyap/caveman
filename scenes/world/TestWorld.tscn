@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/network/PlayerSpawner.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/items/ChoppableTree.tscn" id="2_tree"]
+[ext_resource type="PackedScene" path="res://scenes/camp/Campfire.tscn" id="3_campfire"]
+[ext_resource type="PackedScene" path="res://scenes/nature/PolyTree.tscn" id="4_polytree"]
+[ext_resource type="PackedScene" path="res://scenes/items/WoodLogProp.tscn" id="5_woodlog"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(120, 0.5, 120)
@@ -46,4 +49,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -4)
 
 [node name="ChoppableTree2" parent="." instance=ExtResource("2_tree")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -3.5)
+
+[node name="Campfire" parent="." instance=ExtResource("3_campfire")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+
+[node name="PolyTree1" parent="." instance=ExtResource("4_polytree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+
+[node name="WoodLogProp1" parent="." instance=ExtResource("5_woodlog")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0, -2.2)
+
 

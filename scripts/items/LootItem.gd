@@ -30,12 +30,26 @@ func setup(new_item_id: String, new_quantity: int) -> void:
 func _update_visuals() -> void:
 	if _label:
 		_label.text = "%s x%d" % [item_id.capitalize().replace("_", " "), quantity]
-	## Tint mesh based on item type (simple placeholder differentiation)
+	## Use 3D Quaternius wood log model when dropping wood
 	if _mesh:
+		if item_id == "wood":
+			var log_mesh := load("res://assets/models/items/wood_log.obj") as Mesh
+			if log_mesh:
+				_mesh.mesh = log_mesh
+				var mat_bark := StandardMaterial3D.new()
+				mat_bark.albedo_color = Color(0.38, 0.22, 0.12)
+				mat_bark.roughness = 0.9
+				var mat_core := StandardMaterial3D.new()
+				mat_core.albedo_color = Color(0.62, 0.48, 0.32)
+				mat_core.roughness = 0.9
+				_mesh.set_surface_override_material(0, mat_bark)
+				_mesh.set_surface_override_material(1, mat_core)
+				return
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = _item_color()
 		mat.roughness = 0.8
 		_mesh.set_surface_override_material(0, mat)
+
 
 func _item_color() -> Color:
 	match item_id:

@@ -13,6 +13,10 @@
 [ext_resource type="Mesh" path="res://assets/models/camp/primitive_barrel.obj" id="11"]
 [ext_resource type="Mesh" path="res://assets/models/items/stone_wheel.obj" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/items/ChoppableTree.tscn" id="13_tree"]
+[ext_resource type="PackedScene" path="res://scenes/camp/Campfire.tscn" id="14_campfire"]
+[ext_resource type="PackedScene" path="res://scenes/nature/PolyTree.tscn" id="15_polytree"]
+[ext_resource type="PackedScene" path="res://scenes/items/ChoppablePolyTree.tscn" id="16_choppablepolytree"]
+[ext_resource type="PackedScene" path="res://scenes/items/WoodLogProp.tscn" id="17_woodlog"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_camp"]
 sky_top_color = Color(0.22, 0.58, 0.98, 1)
@@ -233,6 +237,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -12)
 [node name="ChoppablePine2" parent="PerimeterScenery" instance=ExtResource("13_tree")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -12)
 
+[node name="PolyTree1" parent="PerimeterScenery" instance=ExtResource("15_polytree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -8)
+
+[node name="PolyTree2" parent="PerimeterScenery" instance=ExtResource("15_polytree")]
+transform = Transform3D(1.1, 0, 0, 0, 1.1, 0, 0, 0, 1.1, 16, 0, -8)
+
+[node name="ChoppablePolyTree1" parent="PerimeterScenery" instance=ExtResource("16_choppablepolytree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 8)
+
+[node name="WoodLogPile1" parent="PerimeterScenery" instance=ExtResource("17_woodlog")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, -6.5)
+
+[node name="WoodLogPile2" parent="PerimeterScenery" instance=ExtResource("17_woodlog")]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, -10.5, 0, 2.5)
+
 [node name="Boulder1" type="MeshInstance3D" parent="PerimeterScenery"]
 transform = Transform3D(1.8, 0, 0, 0, 1.4, 0, 0, 0, 1.8, -6, 0, -22)
 mesh = ExtResource("9")
@@ -336,6 +355,9 @@ shape = SubResource("CylinderShape3D_station")
 position = Vector3(0, 0.2, 0)
 mesh = SubResource("CylinderMesh_pit")
 surface_material_override/0 = SubResource("Mat_fire_pit")
+
+[node name="Campfire" parent="Stations/CraftingFire" instance=ExtResource("14_campfire")]
+transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, 0, 0.1, 0)
 
 [node name="FireLight" type="OmniLight3D" parent="Stations/CraftingFire"]
 position = Vector3(0, 1, 0)
@@ -469,6 +491,9 @@ shape = SubResource("CylinderShape3D_station")
 position = Vector3(0, 0.2, 0)
 mesh = SubResource("CylinderMesh_pit")
 surface_material_override/0 = SubResource("Mat_fire_pit")
+
+[node name="Campfire" parent="Stations/CampCenter" instance=ExtResource("14_campfire")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, 0, 0.1, 0)
 
 [node name="BonfireLight" type="OmniLight3D" parent="Stations/CampCenter"]
 position = Vector3(0, 1.5, 0)
