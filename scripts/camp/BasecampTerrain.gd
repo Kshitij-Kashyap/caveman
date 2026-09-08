@@ -9,7 +9,6 @@
 ## - Dedicated elevated training berm & target range in the North-East sector
 ## - Prehistoric vertex colors (lush grass, trodden camp soil, rocky knolls)
 
-@tool
 class_name BasecampTerrain
 extends StaticBody3D
 
