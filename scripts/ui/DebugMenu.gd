@@ -193,6 +193,23 @@ func _on_toggle_ai() -> void:
 			ai.set_ai_enabled(not ai_enabled)
 	_set_status("AI %s" % ("disabled" if ai_enabled else "enabled"))
 
+func _on_club_t1() -> void:
+	_set_club_tier(1)
+
+func _on_club_t2() -> void:
+	_set_club_tier(2)
+
+func _on_club_t3() -> void:
+	_set_club_tier(3)
+
+func _on_club_t4() -> void:
+	_set_club_tier(4)
+
+func _set_club_tier(tier: int) -> void:
+	ProgressionManager.set_weapon_tier("club", tier)
+	var data: Dictionary = ProgressionManager.get_weapon_tier_data("club", tier)
+	_set_status("Club set to Tier %d: %s (%d DMG)" % [tier, data.get("name", ""), int(data.get("damage", 32))])
+
 func _on_return_to_menu() -> void:
 	GameManager.return_to_main_menu()
 

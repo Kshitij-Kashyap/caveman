@@ -111,6 +111,29 @@ theme_override_font_sizes/font_size = 12
 text = "🤖 Toggle AI"
 theme_override_font_sizes/font_size = 12
 
+[node name="SepWeapon" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+
+[node name="WeaponHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+text = "🗡️ CLUB UPGRADES"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+
+[node name="ClubT1Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
+text = "Tier 1: Crude Club (32 DMG)"
+theme_override_font_sizes/font_size = 12
+
+[node name="ClubT2Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
+text = "Tier 2: Bone Spikes (48 DMG)"
+theme_override_font_sizes/font_size = 12
+
+[node name="ClubT3Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
+text = "Tier 3: Obsidian Cleaver (65 DMG)"
+theme_override_font_sizes/font_size = 12
+
+[node name="ClubT4Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
+text = "Tier 4: Chieftain Totem (85 DMG)"
+theme_override_font_sizes/font_size = 12
+
 [node name="Sep3" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
 
 [node name="MenuBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
@@ -137,4 +160,8 @@ theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/CompleteQuestBtn" to="." method="_on_complete_quest"]
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportExtBtn" to="." method="_on_teleport_extraction"]
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/ToggleAIBtn" to="." method="_on_toggle_ai"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT1Btn" to="." method="_on_club_t1"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT2Btn" to="." method="_on_club_t2"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT3Btn" to="." method="_on_club_t3"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT4Btn" to="." method="_on_club_t4"]
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/MenuBtn" to="." method="_on_return_to_menu"]

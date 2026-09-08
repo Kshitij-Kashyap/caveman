@@ -1,6 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://bogukutv3520"]
 
-[ext_resource type="Script" path="res://scripts/camp/SpearTarget.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://qmn6q3ed6kqn" path="res://scripts/camp/SpearTarget.gd" id="1_script"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_target"]
 height = 0.15
@@ -13,57 +13,56 @@ height = 0.08
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="Mat_target_disk"]
-albedo_color = Color(0.85, 0.76, 0.60, 1)
+albedo_color = Color(0.85, 0.76, 0.6, 1)
 roughness = 0.85
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bullseye"]
-top_radius = 0.20
-bottom_radius = 0.20
+top_radius = 0.2
+bottom_radius = 0.2
 height = 0.082
 radial_segments = 20
 
 [sub_resource type="StandardMaterial3D" id="Mat_bullseye"]
 albedo_color = Color(0.82, 0.22, 0.18, 1)
-roughness = 0.70
+roughness = 0.7
 
 [sub_resource type="BoxMesh" id="BoxMesh_legs"]
 size = Vector3(0.12, 1.5, 0.12)
 
 [sub_resource type="StandardMaterial3D" id="Mat_wood_post"]
 albedo_color = Color(0.42, 0.28, 0.16, 1)
-roughness = 0.90
+roughness = 0.9
 
-[node name="SpearTarget" type="StaticBody3D"]
-collision_layer = 1
+[node name="SpearTarget" type="StaticBody3D" unique_id=1716740183]
 collision_mask = 0
 script = ExtResource("1_script")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=536858573]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1.4, 0)
 shape = SubResource("CylinderShape3D_target")
 
-[node name="DiskMesh" type="MeshInstance3D" parent="."]
+[node name="DiskMesh" type="MeshInstance3D" parent="." unique_id=1701419883]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 1.4, 0)
 mesh = SubResource("CylinderMesh_disk")
 surface_material_override/0 = SubResource("Mat_target_disk")
 
-[node name="BullseyeMesh" type="MeshInstance3D" parent="DiskMesh"]
+[node name="BullseyeMesh" type="MeshInstance3D" parent="DiskMesh" unique_id=1752679334]
 mesh = SubResource("CylinderMesh_bullseye")
 surface_material_override/0 = SubResource("Mat_bullseye")
 
-[node name="StandMesh" type="Node3D" parent="."]
+[node name="StandMesh" type="Node3D" parent="." unique_id=1656336367]
 
-[node name="LegLeft" type="MeshInstance3D" parent="StandMesh"]
-transform = Transform3D(0.966, 0.259, 0, -0.259, 0.966, 0, 0, 0, 1, -0.35, 0.7, 0)
+[node name="LegLeft" type="MeshInstance3D" parent="StandMesh" unique_id=894184531]
+transform = Transform3D(0.966, 0.259, 0, -0.259, 0.966, 0, 0, 0, 1, -0.35, 0.7, -0.1)
 mesh = SubResource("BoxMesh_legs")
 surface_material_override/0 = SubResource("Mat_wood_post")
 
-[node name="LegRight" type="MeshInstance3D" parent="StandMesh"]
-transform = Transform3D(0.966, -0.259, 0, 0.259, 0.966, 0, 0, 0, 1, 0.35, 0.7, 0)
+[node name="LegRight" type="MeshInstance3D" parent="StandMesh" unique_id=1795880000]
+transform = Transform3D(0.966, -0.259, 0, 0.259, 0.966, 0, 0, 0, 1, 0.35, 0.7, -0.1)
 mesh = SubResource("BoxMesh_legs")
 surface_material_override/0 = SubResource("Mat_wood_post")
 
-[node name="BackLeg" type="MeshInstance3D" parent="StandMesh"]
+[node name="BackLeg" type="MeshInstance3D" parent="StandMesh" unique_id=2139269408]
 transform = Transform3D(1, 0, 0, 0, 0.94, -0.34, 0, 0.34, 0.94, 0, 0.65, -0.4)
 mesh = SubResource("BoxMesh_legs")
 surface_material_override/0 = SubResource("Mat_wood_post")

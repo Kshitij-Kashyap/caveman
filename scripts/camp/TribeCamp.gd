@@ -94,13 +94,42 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 					stock_text += "• %s: %d\n" % [k.capitalize(), ProgressionManager.stored_resources[k]]
 			camp_hud.show_modal("TRIBE STORAGE", stock_text)
 		"upgrade_station":
-			camp_hud.show_modal(
-				"TRIBE UPGRADES",
-				"Enhance warrior attributes using recovered stone rings and raw minerals.\nMax Health: +%d | Max Stamina: +%d" % [
-					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.HEALTH_MAX)),
-					int(ProgressionManager.get_upgrade_bonus(UpgradeDefinition.EffectType.STAMINA_MAX))
+			var cur_tier: int = ProgressionManager.get_weapon_tier("club")
+			var cur_data: Dictionary = ProgressionManager.get_weapon_tier_data("club", cur_tier)
+			var next_data: Dictionary = ProgressionManager.get_next_weapon_tier_data("club")
+
+			var title := "TRIBE WEAPON UPGRADES"
+			var body := "ACTIVE WEAPON: %s (Tier %d)\n" % [cur_data.get("name", "Stone Club"), cur_tier]
+			body += "• Striking Damage: %d DMG\n" % int(cur_data.get("damage", 32.0))
+			body += "• Physical Knockback: %.1fx\n" % cur_data.get("impulse", 1.0)
+			body += "• Visuals: %s\n\n" % cur_data.get("desc", "")
+
+			if not next_data.is_empty():
+				body += "NEXT UPGRADE: Tier %d — %s\n" % [cur_tier + 1, next_data.get("name", "")]
+				body += "• New Damage: %d DMG (+%d)\n" % [
+					int(next_data.get("damage", 0)),
+					int(next_data.get("damage", 0) - cur_data.get("damage", 0))
 				]
-			)
+				body += "• New Details: %s\n\n" % next_data.get("desc", "")
+				body += "Required Cost: %d Stone Rings" % next_data.get("cost_rings", 0)
+				var cost_res: Dictionary = next_data.get("cost_res", {})
+				for r in cost_res:
+					body += " | %d %s" % [cost_res[r], r.capitalize()]
+
+				var can_afford := ProgressionManager.can_upgrade_weapon("club")
+				var action_txt := "UPGRADE WEAPON" if can_afford else "NEED MORE RESOURCES"
+				camp_hud.show_modal(
+					title,
+					body,
+					action_txt,
+					func():
+						if ProgressionManager.can_upgrade_weapon("club"):
+							ProgressionManager.upgrade_weapon("club")
+							AudioManager.play_sfx(AudioManager.SFX.PICKAXE_HIT_ORE)
+				)
+			else:
+				body += "★ MAXIMUM TIER REACHED ★\nYour tribal war club has attained supreme chieftain strength!"
+				camp_hud.show_modal(title, body)
 		"character_station":
 			camp_hud.show_modal(
 				"WAR PAINT TOTEM",

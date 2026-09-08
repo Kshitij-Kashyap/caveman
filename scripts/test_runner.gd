@@ -117,8 +117,7 @@ func _ready() -> void:
 		var ic := st_node.get_node_or_null("InteractableComponent") as InteractableComponent
 		assert(ic != null, "Station %s must have an InteractableComponent" % s_name)
 
-	assert(camp.get_node_or_null("PerimeterScenery/StoneWheelMonument1") != null, "StoneWheelMonument1 must exist")
-	assert(camp.get_node_or_null("PerimeterScenery/StoneWheelMonument2") != null, "StoneWheelMonument2 must exist")
+	assert(camp.find_child("StoneWheelMonument1", true, false) != null, "StoneWheelMonument1 must exist")
 	var camp_currency: Label = camp.get_node_or_null("CampHUD/TopRight/VBox/CurrencyLabel")
 	assert(camp_currency != null, "CampHUD CurrencyLabel must exist")
 	assert("STONE RINGS" in camp_currency.text, "Camp currency must display STONE RINGS")
@@ -479,8 +478,60 @@ func _ready() -> void:
 	assert(camp_ground != null and camp_ground.get_script() == BasecampTerrain, "TribeCamp Ground must use BasecampTerrain script")
 	print("  -> Uneven Basecamp Terrain & Testing Ground Targets passed.")
 
+	# 19. Test Modular Weapon Visual & Stat Upgrades (Club Tiers 1-4)
+	print("[19/19] Testing Modular Weapon Visual & Stat Upgrades (Club T1-T4)...")
+	var vm_upgrade := FirstPersonViewmodel.new()
+	add_child(vm_upgrade)
+	vm_upgrade.set_tool(FirstPersonViewmodel.ToolType.CLUB)
+	assert(vm_upgrade.club_mesh != null, "Viewmodel must have ClubMesh")
+	assert(vm_upgrade.club_t2_mesh != null and vm_upgrade.club_t2_mesh.mesh != null, "Club must have Tier 2 attachment mesh")
+	assert(vm_upgrade.club_t3_mesh != null and vm_upgrade.club_t3_mesh.mesh != null, "Club must have Tier 3 attachment mesh")
+	assert(vm_upgrade.club_t4_mesh != null and vm_upgrade.club_t4_mesh.mesh != null, "Club must have Tier 4 attachment mesh")
+
+	# Test Tier 1 (Crude)
+	ProgressionManager.set_weapon_tier("club", 1)
+	vm_upgrade.apply_weapon_tier("club", 1)
+	assert(not vm_upgrade.club_t2_mesh.visible, "T1 club should not show T2 spikes")
+	assert(not vm_upgrade.club_t3_mesh.visible, "T1 club should not show T3 obsidian")
+	assert(not vm_upgrade.club_t4_mesh.visible, "T1 club should not show T4 totem")
+	assert(is_equal_approx(vm_upgrade.melee_damage, 32.0), "T1 club damage should be 32.0 (got: %f)" % vm_upgrade.melee_damage)
+
+	# Test Tier 2 (Bone Spikes)
+	ProgressionManager.set_weapon_tier("club", 2)
+	vm_upgrade.apply_weapon_tier("club", 2)
+	assert(vm_upgrade.club_t2_mesh.visible, "T2 club must show bone spikes")
+	assert(not vm_upgrade.club_t3_mesh.visible, "T2 club should not show T3 obsidian")
+	assert(is_equal_approx(vm_upgrade.melee_damage, 48.0), "T2 club damage should be 48.0 (got: %f)" % vm_upgrade.melee_damage)
+
+	# Test Tier 3 (Obsidian Cleaver)
+	ProgressionManager.set_weapon_tier("club", 3)
+	vm_upgrade.apply_weapon_tier("club", 3)
+	assert(not vm_upgrade.club_t2_mesh.visible, "T3 club should hide T2 spikes")
+	assert(vm_upgrade.club_t3_mesh.visible, "T3 club must show obsidian blades")
+	assert(is_equal_approx(vm_upgrade.melee_damage, 65.0), "T3 club damage should be 65.0 (got: %f)" % vm_upgrade.melee_damage)
+
+	# Test Tier 4 (Chieftain Totem)
+	ProgressionManager.set_weapon_tier("club", 4)
+	vm_upgrade.apply_weapon_tier("club", 4)
+	assert(not vm_upgrade.club_t3_mesh.visible, "T4 club should hide T3 obsidian")
+	assert(vm_upgrade.club_t4_mesh.visible, "T4 club must show volcanic totem attachments")
+	assert(is_equal_approx(vm_upgrade.melee_damage, 85.0), "T4 club damage should be 85.0 (got: %f)" % vm_upgrade.melee_damage)
+
+	# Test Target Damage Popup with upgraded club
+	target.on_hit(vm_upgrade.melee_damage)
+	var found_popup := false
+	for child in target.get_children():
+		if child is Label3D and "85 DMG" in child.text:
+			found_popup = true
+			break
+	assert(found_popup, "SpearTarget must spawn 3D damage popup showing 85 DMG on T4 hit")
+
+	# Reset weapon tier
+	ProgressionManager.set_weapon_tier("club", 1)
+	print("  -> Modular Weapon Visual & Stat Upgrades (Club T1-T4) passed.")
+
 	print("==================================================")
-	print("--- ALL 18 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 19 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
 

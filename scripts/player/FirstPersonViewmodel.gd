@@ -78,6 +78,9 @@ var pickaxe_mesh: MeshInstance3D
 var axe_mesh: MeshInstance3D
 var spear_mesh: MeshInstance3D
 var club_mesh: MeshInstance3D
+var club_t2_mesh: MeshInstance3D
+var club_t3_mesh: MeshInstance3D
+var club_t4_mesh: MeshInstance3D
 var torch_mesh: MeshInstance3D
 var torch_light: OmniLight3D
 
@@ -86,6 +89,9 @@ var mat_wood: StandardMaterial3D
 var mat_stone: StandardMaterial3D
 var mat_leather: StandardMaterial3D
 var mat_fire: StandardMaterial3D
+var mat_bone: StandardMaterial3D
+var mat_obsidian: StandardMaterial3D
+var mat_volcanic: StandardMaterial3D
 
 # ---------------------------------------------------------------------------
 # Lifecycle
@@ -98,6 +104,12 @@ func _ready() -> void:
 	_rest_transform = transform
 	_apply_tool_visibility()
 	_update_tool_stats()
+
+	var pm := get_node_or_null("/root/ProgressionManager")
+	if pm:
+		if pm.has_signal("weapon_upgraded"):
+			pm.weapon_upgraded.connect(_on_weapon_upgraded)
+		apply_weapon_tier("club", pm.get_weapon_tier("club"))
 
 func _init_materials() -> void:
 	mat_skin = StandardMaterial3D.new()
@@ -130,6 +142,26 @@ func _init_materials() -> void:
 	mat_fire.emission_enabled = true
 	mat_fire.emission = Color(1.0, 0.45, 0.1)
 	mat_fire.emission_energy_multiplier = 3.5
+
+	mat_bone = StandardMaterial3D.new()
+	mat_bone.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	mat_bone.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+	mat_bone.albedo_color = Color(0.92, 0.88, 0.78)
+	mat_bone.roughness = 0.60
+
+	mat_obsidian = StandardMaterial3D.new()
+	mat_obsidian.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	mat_obsidian.diffuse_mode = BaseMaterial3D.DIFFUSE_BURLEY
+	mat_obsidian.albedo_color = Color(0.06, 0.06, 0.08)
+	mat_obsidian.metallic = 0.35
+	mat_obsidian.roughness = 0.12
+
+	mat_volcanic = StandardMaterial3D.new()
+	mat_volcanic.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	mat_volcanic.albedo_color = Color(1.0, 0.35, 0.05)
+	mat_volcanic.emission_enabled = true
+	mat_volcanic.emission = Color(1.0, 0.30, 0.05)
+	mat_volcanic.emission_energy_multiplier = 3.5
 
 func _build_viewmodel() -> void:
 	for c in get_children():
@@ -173,7 +205,7 @@ func _build_viewmodel() -> void:
 		_assign_tool_materials(spear_mesh, spear_obj)
 	add_child(spear_mesh)
 
-	# 4. Club
+	# 4. Club & Modular Upgrade Attachments
 	club_mesh = MeshInstance3D.new()
 	club_mesh.name = "ClubMesh"
 	club_mesh.position = Vector3(0.0, -0.02, 0.0)
@@ -182,6 +214,33 @@ func _build_viewmodel() -> void:
 		club_mesh.mesh = club_obj
 		_assign_tool_materials(club_mesh, club_obj)
 	add_child(club_mesh)
+
+	club_t2_mesh = MeshInstance3D.new()
+	club_t2_mesh.name = "ClubAttachmentsTier2"
+	var t2_obj := load("res://assets/models/character/club_attachments_tier2.obj") as Mesh
+	if t2_obj:
+		club_t2_mesh.mesh = t2_obj
+		_assign_tool_materials(club_t2_mesh, t2_obj)
+	club_t2_mesh.visible = false
+	club_mesh.add_child(club_t2_mesh)
+
+	club_t3_mesh = MeshInstance3D.new()
+	club_t3_mesh.name = "ClubAttachmentsTier3"
+	var t3_obj := load("res://assets/models/character/club_attachments_tier3.obj") as Mesh
+	if t3_obj:
+		club_t3_mesh.mesh = t3_obj
+		_assign_tool_materials(club_t3_mesh, t3_obj)
+	club_t3_mesh.visible = false
+	club_mesh.add_child(club_t3_mesh)
+
+	club_t4_mesh = MeshInstance3D.new()
+	club_t4_mesh.name = "ClubAttachmentsTier4"
+	var t4_obj := load("res://assets/models/character/club_attachments_tier4.obj") as Mesh
+	if t4_obj:
+		club_t4_mesh.mesh = t4_obj
+		_assign_tool_materials(club_t4_mesh, t4_obj)
+	club_t4_mesh.visible = false
+	club_mesh.add_child(club_t4_mesh)
 
 	# 5. Torch
 	torch_mesh = MeshInstance3D.new()
@@ -212,8 +271,28 @@ func _assign_tool_materials(m_inst: MeshInstance3D, m_obj: Mesh) -> void:
 			m_inst.set_surface_override_material(i, mat_stone)
 		elif "fire" in s_name:
 			m_inst.set_surface_override_material(i, mat_fire)
+		elif "volcanic" in s_name:
+			m_inst.set_surface_override_material(i, mat_volcanic)
+		elif "bone" in s_name:
+			m_inst.set_surface_override_material(i, mat_bone)
+		elif "obsidian" in s_name:
+			m_inst.set_surface_override_material(i, mat_obsidian)
 		else:
 			m_inst.set_surface_override_material(i, mat_leather)
+
+func apply_weapon_tier(weapon_id: String, tier: int) -> void:
+	if weapon_id == "club":
+		if club_t2_mesh:
+			club_t2_mesh.visible = (tier == 2)
+		if club_t3_mesh:
+			club_t3_mesh.visible = (tier == 3)
+		if club_t4_mesh:
+			club_t4_mesh.visible = (tier == 4)
+		if current_tool == ToolType.CLUB:
+			_update_tool_stats()
+
+func _on_weapon_upgraded(weapon_id: String, new_tier: int) -> void:
+	apply_weapon_tier(weapon_id, new_tier)
 
 # ---------------------------------------------------------------------------
 # Weapon Switching
@@ -301,7 +380,10 @@ func _update_tool_stats() -> void:
 		ToolType.CLUB:
 			reach = 2.2
 			mining_power = 0.6
-			melee_damage = 32.0
+			var pm := get_node_or_null("/root/ProgressionManager")
+			var tier: int = pm.get_weapon_tier("club") if pm else 1
+			var t_data: Dictionary = pm.get_weapon_tier_data("club", tier) if pm else {}
+			melee_damage = t_data.get("damage", 32.0)
 			swing_rate = 1.05
 		ToolType.TORCH:
 			reach = 2.0
@@ -609,8 +691,13 @@ func _check_hit() -> void:
 	if rb:
 		var hit_dir := (hit_pos - origin).normalized()
 		var force := melee_damage * 0.4
+		var pm := get_node_or_null("/root/ProgressionManager")
+		var imp_mult: float = 1.0
+		if pm and current_tool == ToolType.CLUB:
+			var tier: int = pm.get_weapon_tier("club")
+			imp_mult = pm.get_weapon_tier_data("club", tier).get("impulse", 1.0)
 		if current_tool == ToolType.CLUB:
-			force *= 1.8
+			force *= 1.8 * imp_mult
 		elif current_tool == ToolType.SPEAR:
 			force *= 1.3
 		var impulse := hit_dir * force + Vector3.UP * (force * 0.35)
@@ -623,6 +710,19 @@ func _check_hit() -> void:
 		var am := get_node_or_null("/root/AudioManager")
 		if am and am.has_method("play_sfx"):
 			am.play_sfx(am.SFX.PICKAXE_HIT)
+		return
+
+	# Check for SpearTarget / Practice dummies
+	var target := _find_ancestor_script(collider, "SpearTarget")
+	if not target and collider and (collider.is_in_group("targets") or collider.has_method("on_hit") and not collider.has_method("take_damage")):
+		if not collider is MineableDeposit and not collider is ChoppableTree:
+			target = collider
+	if target and target.has_method("on_hit"):
+		target.on_hit(melee_damage, current_tool == ToolType.AXE)
+		hit_deposit.emit(target)
+		var am := get_node_or_null("/root/AudioManager")
+		if am and am.has_method("play_sfx"):
+			am.play_sfx(am.SFX.AXE_HIT_WOOD)
 		return
 
 	# Check for ChoppableTree
