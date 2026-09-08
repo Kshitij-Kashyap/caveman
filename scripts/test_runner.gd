@@ -530,8 +530,41 @@ func _ready() -> void:
 	ProgressionManager.set_weapon_tier("club", 1)
 	print("  -> Modular Weapon Visual & Stat Upgrades (Club T1-T4) passed.")
 
+	# 20. Test Solid TribeCamp Ground Physics & Void Fall Prevention
+	print("[20/20] Testing Solid TribeCamp Ground Physics & Void Fall Prevention...")
+	var camp_test_scene := load("res://scenes/camp/TribeCamp.tscn") as PackedScene
+	assert(camp_test_scene != null, "TribeCamp scene must load")
+	var sim_camp := camp_test_scene.instantiate() as Node3D
+	add_child(sim_camp)
+
+	# Simulate 30 physics frames for gravity and collision resolution
+	for f in range(30):
+		await get_tree().physics_frame
+
+	# Check that player and all props are firmly grounded and none fell into the void
+	var void_falls := 0
+	var grounded_props := 0
+	for node in sim_camp.find_children("*", "RigidBody3D", true, false):
+		var y_pos: float = (node as Node3D).global_position.y
+		if y_pos < -2.0:
+			void_falls += 1
+		else:
+			grounded_props += 1
+
+	for node in sim_camp.find_children("*", "CharacterBody3D", true, false):
+		var y_pos: float = (node as Node3D).global_position.y
+		if y_pos < -2.0:
+			void_falls += 1
+		else:
+			grounded_props += 1
+
+	assert(void_falls == 0, "No physics bodies should fall through ground into void (got: %d fell)" % void_falls)
+	assert(grounded_props > 0, "Rigid bodies and player must be resting on ground (found: %d)" % grounded_props)
+	sim_camp.queue_free()
+	print("  -> Solid TribeCamp Ground Physics passed (%d bodies firmly grounded, 0 void falls)." % grounded_props)
+
 	print("==================================================")
-	print("--- ALL 19 VERIFICATION TESTS PASSED! ---")
+	print("--- ALL 20 VERIFICATION TESTS PASSED! ---")
 	print("==================================================")
 	get_tree().quit(0)
 

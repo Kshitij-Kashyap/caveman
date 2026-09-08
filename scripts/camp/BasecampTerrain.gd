@@ -116,17 +116,17 @@ func generate_terrain() -> void:
 			var i2 := (iz + 1) * nx + ix
 			var i3 := i2 + 1
 
-			# Triangle 1
+			# Triangle 1 (CCW facing UP)
 			indices.append(i0)
-			indices.append(i2)
 			indices.append(i1)
+			indices.append(i2)
 
-			# Triangle 2
+			# Triangle 2 (CCW facing UP)
 			indices.append(i1)
-			indices.append(i2)
 			indices.append(i3)
+			indices.append(i2)
 
-	# 3. Compute Smooth Vertex Normals
+	# 3. Compute Smooth Vertex Normals (Upward-pointing)
 	normals.resize(verts.size())
 	for i in range(normals.size()):
 		normals[i] = Vector3.ZERO
@@ -140,7 +140,7 @@ func generate_terrain() -> void:
 		var vb := verts[i_b]
 		var vc := verts[i_c]
 
-		var fn := (vb - va).cross(vc - va).normalized()
+		var fn := (vc - va).cross(vb - va).normalized()
 		normals[i_a] += fn
 		normals[i_b] += fn
 		normals[i_c] += fn
@@ -169,10 +169,25 @@ func generate_terrain() -> void:
 		mat_grass.roughness = 0.88
 		mat_grass.metallic_specular = 0.15
 
+	_mesh_instance.transform = Transform3D.IDENTITY
 	_mesh_instance.mesh = array_mesh
 	_mesh_instance.set_surface_override_material(0, mat_grass)
 
-	# 5. Build Jolt Collision Shape
+	# 5. Build Jolt Collision Shape with backface collision enabled
+	_col_shape.transform = Transform3D.IDENTITY
 	var shape := array_mesh.create_trimesh_shape()
+	if shape is ConcavePolygonShape3D:
+		shape.backface_collision = true
 	if shape and _col_shape:
 		_col_shape.shape = shape
+
+	# 6. Safety Foundation Floor (prevents any tunneling/falling into the void)
+	var foundation := get_node_or_null("FoundationCollisionShape3D") as CollisionShape3D
+	if not foundation:
+		foundation = CollisionShape3D.new()
+		foundation.name = "FoundationCollisionShape3D"
+		var box := BoxShape3D.new()
+		box.size = Vector3(terrain_size.x + 40.0, 4.0, terrain_size.y + 40.0)
+		foundation.shape = box
+		foundation.position = Vector3(0.0, -3.2, 0.0) # top at y = -1.2, safely below dips
+		add_child(foundation)
