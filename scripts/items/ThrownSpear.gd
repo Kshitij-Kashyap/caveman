@@ -47,14 +47,17 @@ func _setup_materials() -> void:
 	var mat_wood := StandardMaterial3D.new()
 	mat_wood.albedo_color = Color(0.48, 0.32, 0.16)
 	mat_wood.roughness = 0.85
+	mat_wood.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	var mat_stone := StandardMaterial3D.new()
 	mat_stone.albedo_color = Color(0.24, 0.23, 0.22)
 	mat_stone.roughness = 0.65
+	mat_stone.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	var mat_leather := StandardMaterial3D.new()
 	mat_leather.albedo_color = Color(0.38, 0.26, 0.16)
 	mat_leather.roughness = 0.90
+	mat_leather.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	var m: Mesh = spear_mesh.mesh
 	for i in m.get_surface_count():

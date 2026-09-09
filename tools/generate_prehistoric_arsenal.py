@@ -53,7 +53,7 @@ class ObjBuilder:
             r2 = rings[r + 1]
             for i in range(n_per_ring):
                 ni = (i + 1) % n_per_ring
-                self.add_quad(r1[i], r1[ni], r2[ni], r2[i])
+                self.add_quad(r1[i], r2[i], r2[ni], r1[ni])
 
     def write_obj(self, filepath, mtl_filename):
         mat_groups = {}
@@ -121,14 +121,14 @@ def build_stone_wheel():
 
     for i in range(n_segs):
         ni = (i + 1) % n_segs
-        # Outer rim quads
-        b.add_quad(outer_bot[i], outer_bot[ni], outer_top[ni], outer_top[i])
-        # Inner hole rim quads (facing inward)
-        b.add_quad(inner_top[i], inner_top[ni], inner_bot[ni], inner_bot[i])
-        # Top annular face (from outer to inner)
-        b.add_quad(outer_top[i], outer_top[ni], inner_top[ni], inner_top[i])
-        # Bottom annular face (from inner to outer)
-        b.add_quad(inner_bot[i], inner_bot[ni], outer_bot[ni], outer_bot[i])
+        # Outer rim quads (CCW outward)
+        b.add_quad(outer_bot[i], outer_top[i], outer_top[ni], outer_bot[ni])
+        # Inner hole rim quads (CCW facing inward hole)
+        b.add_quad(inner_bot[ni], inner_top[ni], inner_top[i], inner_bot[i])
+        # Top annular face (CCW pointing +Y up)
+        b.add_quad(inner_top[i], inner_top[ni], outer_top[ni], outer_top[i])
+        # Bottom annular face (CCW pointing -Y down)
+        b.add_quad(outer_bot[i], outer_bot[ni], inner_bot[ni], inner_bot[i])
 
     return b
 
@@ -158,11 +158,11 @@ def build_spear():
         rings.append(ring)
     b.add_cylinder_section(rings)
 
-    # Cap bottom of shaft
+    # Cap bottom of shaft (-Y down)
     bot_center = b.add_vertex(0.0, -1.02, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(bot_center, rings[0][ni], rings[0][i])
+        b.add_triangle(bot_center, rings[0][i], rings[0][ni])
 
     # B. Leather / Sinew Binding (socket wrap, y = 0.46 to 0.56)
     b.set_material("mat_clothing")
@@ -196,20 +196,20 @@ def build_spear():
         p_front = b.add_vertex(0.0, y, tz)
         b_rings.append([p_right, p_back, p_left, p_front])
 
-    # Connect blade rings
+    # Connect blade rings (CCW outward)
     for r in range(len(b_rings) - 1):
         r1 = b_rings[r]
         r2 = b_rings[r + 1]
         for i in range(4):
             ni = (i + 1) % 4
-            b.add_quad(r1[i], r1[ni], r2[ni], r2[i])
+            b.add_quad(r1[i], r2[i], r2[ni], r1[ni])
 
     # Tip point
     tip = b.add_vertex(0.0, 0.88, 0.0)
     top_ring = b_rings[-1]
     for i in range(4):
         ni = (i + 1) % 4
-        b.add_triangle(top_ring[i], top_ring[ni], tip)
+        b.add_triangle(tip, top_ring[i], top_ring[ni])
 
     return b
 
@@ -241,16 +241,16 @@ def build_club():
         rings.append(ring)
     b.add_cylinder_section(rings)
 
-    # Cap bottom & top
+    # Cap bottom & top (-Y down, +Y up)
     bot_center = b.add_vertex(0.0, -0.47, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(bot_center, rings[0][ni], rings[0][i])
+        b.add_triangle(bot_center, rings[0][i], rings[0][ni])
 
     top_center = b.add_vertex(0.04, 0.42, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(rings[-1][i], rings[-1][ni], top_center)
+        b.add_triangle(top_center, rings[-1][ni], rings[-1][i])
 
     # B. Embedded Stone Tooth on striking face
     b.set_material("mat_stone")
@@ -260,23 +260,23 @@ def build_club():
     st_base4 = b.add_vertex(0.10, 0.18, 0.025)
     st_point = b.add_vertex(0.18, 0.23, 0.0)
 
-    b.add_quad(st_base1, st_base2, st_base3, st_base4)
-    b.add_triangle(st_base1, st_point, st_base2)
-    b.add_triangle(st_base2, st_point, st_base3)
-    b.add_triangle(st_base3, st_point, st_base4)
-    b.add_triangle(st_base4, st_point, st_base1)
+    b.add_quad(st_base4, st_base3, st_base2, st_base1)
+    b.add_triangle(st_base1, st_base2, st_point)
+    b.add_triangle(st_base2, st_base3, st_point)
+    b.add_triangle(st_base3, st_base4, st_point)
+    b.add_triangle(st_base4, st_base1, st_point)
 
     # C. Leather Grip Wrap
     b.set_material("mat_clothing")
-    grip_rings = []
-    for y in [-0.35, -0.28, -0.20]:
-        ring = []
+    wrap_rings = []
+    for wy in [-0.35, -0.20, -0.05]:
+        w_ring = []
         for i in range(n_pts):
             ang = i * (2.0 * math.pi / n_pts)
-            r = 0.038
-            ring.append(b.add_vertex(math.cos(ang) * r, y, math.sin(ang) * r))
-        grip_rings.append(ring)
-    b.add_cylinder_section(grip_rings)
+            wr = 0.038
+            w_ring.append(b.add_vertex(math.cos(ang) * wr, wy, math.sin(ang) * wr))
+        wrap_rings.append(w_ring)
+    b.add_cylinder_section(wrap_rings)
 
     return b
 
@@ -287,13 +287,13 @@ def build_club():
 def build_torch():
     b = ObjBuilder("tool_torch")
 
-    # A. Wooden Branch Handle (y = -0.45 to y = 0.12)
+    # A. Weathered Wooden Branch Handle (y = -0.45 to y = 0.12)
     b.set_material("mat_wood")
     handle_segs = [
         (-0.45, 0.024),
-        (-0.20, 0.026),
-        (0.00,  0.028),
-        (0.12,  0.030)
+        (-0.25, 0.026),
+        (-0.05, 0.028),
+        ( 0.12, 0.032)
     ]
     rings = []
     n_pts = 6
@@ -305,11 +305,11 @@ def build_torch():
         rings.append(ring)
     b.add_cylinder_section(rings)
 
-    # Bottom cap
+    # Bottom cap (-Y down)
     bot_center = b.add_vertex(0.0, -0.47, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(bot_center, rings[0][ni], rings[0][i])
+        b.add_triangle(bot_center, rings[0][i], rings[0][ni])
 
     # B. Bound Grass & Pitch Bundle Head (y = 0.10 to y = 0.30)
     b.set_material("mat_clothing")
@@ -348,13 +348,12 @@ def build_torch():
     flame_tip = b.add_vertex(0.0, 0.48, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(f_rings[-1][i], f_rings[-1][ni], flame_tip)
+        b.add_triangle(flame_tip, f_rings[-1][i], f_rings[-1][ni])
 
     return b
 
 # ---------------------------------------------------------------------------
 # 5. PREHISTORIC STONE AXE (CHOPPER & WEAPON)
-
 # ---------------------------------------------------------------------------
 def build_axe():
     b = ObjBuilder("tool_axe")
@@ -362,15 +361,14 @@ def build_axe():
     # A. Wooden Handle (y = -0.36 to y = 0.26)
     b.set_material("mat_wood")
     handle_segs = [
-        # (y, radius, ox, oz)
-        (-0.36, 0.026, 0.000, -0.012), # Bottom flared butt
+        (-0.36, 0.026, 0.000, -0.012),
         (-0.33, 0.022, 0.000, -0.008),
         (-0.24, 0.019, 0.002, -0.004),
-        (-0.10, 0.018, 0.002,  0.000), # Grip center
+        (-0.10, 0.018, 0.002,  0.000),
         ( 0.06, 0.019, 0.001,  0.005),
-        ( 0.16, 0.021, 0.000,  0.009), # Neck
-        ( 0.22, 0.023, -0.001, 0.012), # Head mount
-        ( 0.26, 0.020, -0.002, 0.012), # Top haft tip
+        ( 0.16, 0.021, 0.000,  0.009),
+        ( 0.22, 0.023, -0.001, 0.012),
+        ( 0.26, 0.020, -0.002, 0.012),
     ]
     rings = []
     n_pts = 6
@@ -384,17 +382,16 @@ def build_axe():
         rings.append(ring)
     b.add_cylinder_section(rings)
 
-    # Cap handle bottom
+    # Cap handle bottom & top (-Y down, +Y up)
     bot_center = b.add_vertex(handle_segs[0][2], handle_segs[0][0] - 0.01, handle_segs[0][3])
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(bot_center, rings[0][ni], rings[0][i])
+        b.add_triangle(bot_center, rings[0][i], rings[0][ni])
 
-    # Cap handle top
     top_center = b.add_vertex(handle_segs[-1][2], handle_segs[-1][0] + 0.01, handle_segs[-1][3])
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(top_center, rings[-1][i], rings[-1][ni])
+        b.add_triangle(top_center, rings[-1][ni], rings[-1][i])
 
     # B. Flaked Flint / Chipped Stone Axe Blade
     # Stretches along Z: +Z is poll/butt hammer, -Z is wide crescent chopping edge

@@ -156,18 +156,36 @@ func get_unlocked_count() -> int:
 			n += 1
 	return n
 
+func _get_player() -> Node3D:
+	var p: Node = get_parent()
+	while p != null:
+		if p is CharacterBody3D:
+			return p as Node3D
+		p = p.get_parent()
+	var lp := GameManager.get_local_player() as Node3D
+	if lp != null and is_instance_valid(lp):
+		return lp
+	return null
+
+func _update_schematic() -> void:
+	var data := _find_dungeon_data()
+	var p := _get_player()
+	_map_draw.set_data(data, p.global_position if p else Vector3.ZERO, p != null)
+	_hint.text = "▲ You   ● Cave Exit   ■ den/resource/entrance rooms   (M to close)" if data else "No cave charted — take an expedition!   (M to close)"
+
+func _find_dungeon_data() -> DungeonData:
+	var scene := get_tree().current_scene
+	if scene and scene.has_method("get_dungeon_data"):
+		return scene.get_dungeon_data() as DungeonData
+	return null
+
 func set_test_data(data: DungeonData) -> void:
-	var p := GameManager.get_local_player() as Node3D
+	var p := _get_player()
 	_map_draw.set_data(data, p.global_position if p else Vector3.ZERO, p != null)
 
-func get_player_marker() -> Vector2:
-	# Map-space position of the player marker, for tests.
-	var p := GameManager.get_local_player() as Node3D
-	if p == null:
-		return Vector2.ZERO
-	return Vector2(p.global_position.x, p.global_position.z)
-
 func _build_regions() -> void:
+	if not _region_list:
+		return
 	for c in _region_list.get_children():
 		c.queue_free()
 	for r in REGIONS:
@@ -180,17 +198,12 @@ func _build_regions() -> void:
 			Color(0.9, 0.86, 0.72, 1.0) if unlocked else Color(0.5, 0.48, 0.44, 1.0))
 		_region_list.add_child(lbl)
 
-func _update_schematic() -> void:
-	var data := _find_dungeon_data()
-	var p := GameManager.get_local_player() as Node3D
-	_map_draw.set_data(data, p.global_position if p else Vector3.ZERO, p != null)
-	_hint.text = "▲ You   ● Cave Exit   ■ den/resource/entrance rooms   (M to close)" if data else "No cave charted — take an expedition!   (M to close)"
-
-func _find_dungeon_data() -> DungeonData:
-	var scene := get_tree().current_scene
-	if scene and scene.has_method("get_dungeon_data"):
-		return scene.get_dungeon_data() as DungeonData
-	return null
+func get_player_marker() -> Vector2:
+	# Map-space position of the player marker, for tests.
+	var p := _get_player()
+	if p == null:
+		return Vector2.ZERO
+	return Vector2(p.global_position.x, p.global_position.z)
 
 # ---------------------------------------------------------------------------
 # UI construction

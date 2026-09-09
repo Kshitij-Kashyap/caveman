@@ -97,24 +97,28 @@ func _init_materials() -> void:
 	mat_skin.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_skin.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_skin.roughness = 0.85
+	mat_skin.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	# Hair & Beard
 	mat_hair = StandardMaterial3D.new()
 	mat_hair.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_hair.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_hair.roughness = 0.95
+	mat_hair.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	# Clothing / Pelt Overalls
 	mat_clothing = StandardMaterial3D.new()
 	mat_clothing.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_clothing.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_clothing.roughness = 0.90
+	mat_clothing.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	# Bone & Accents
 	mat_accent = StandardMaterial3D.new()
 	mat_accent.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_accent.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_accent.roughness = 0.60
+	mat_accent.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	# Eyeballs
 	mat_eyes_white = StandardMaterial3D.new()
@@ -122,12 +126,14 @@ func _init_materials() -> void:
 	mat_eyes_white.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_eyes_white.albedo_color = Color(0.96, 0.96, 0.94)
 	mat_eyes_white.roughness = 0.25
+	mat_eyes_white.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_eyes_pupil = StandardMaterial3D.new()
 	mat_eyes_pupil.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_eyes_pupil.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_eyes_pupil.albedo_color = Color(0.06, 0.06, 0.06)
 	mat_eyes_pupil.roughness = 0.20
+	mat_eyes_pupil.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 # ---------------------------------------------------------------------------
 # Mesh Construction

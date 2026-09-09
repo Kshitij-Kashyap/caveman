@@ -30,6 +30,7 @@ func _ready() -> void:
 	_setup_stations()
 	_setup_crafting_menu()
 	_spawn_physics_props()
+	_ensure_two_sided_materials(self)
 
 # ---------------------------------------------------------------------------
 # Station Interactions Setup
@@ -241,3 +242,21 @@ func _spawn_physics_props() -> void:
 		rb.add_child(col)
 		rb.add_child(mesh_inst)
 		props_parent.add_child(rb)
+
+func _ensure_two_sided_materials(root: Node) -> void:
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi == null or mi.mesh == null:
+			continue
+		for s in range(mi.mesh.get_surface_count()):
+			var mat: Material = mi.get_surface_override_material(s)
+			if mat == null:
+				mat = mi.mesh.surface_get_material(s)
+			if mat is StandardMaterial3D:
+				var dup: StandardMaterial3D = mat.duplicate()
+				dup.cull_mode = BaseMaterial3D.CULL_DISABLED
+				mi.set_surface_override_material(s, dup)
+			elif mat == null:
+				var fallback := StandardMaterial3D.new()
+				fallback.cull_mode = BaseMaterial3D.CULL_DISABLED
+				mi.set_surface_override_material(s, fallback)

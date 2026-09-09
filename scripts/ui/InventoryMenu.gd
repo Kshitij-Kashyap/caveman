@@ -241,11 +241,17 @@ func drop_selected() -> bool:
 	var scene := load("res://scenes/items/LootItem.tscn") as PackedScene
 	if scene:
 		var item := scene.instantiate() as LootItem
-		get_tree().current_scene.add_child(item)
+		item.name = "LootItem"
+		item.pickup_delay = 1.0
+		get_tree().current_scene.add_child(item, true)
 		var fwd: Vector3 = -_player.global_transform.basis.z
 		fwd.y = 0.0
-		item.global_position = _player.global_position + fwd.normalized() * 1.2 + Vector3.UP * 0.6
+		if fwd.is_zero_approx():
+			fwd = Vector3.FORWARD
+		fwd = fwd.normalized()
+		item.global_position = _player.global_position + fwd * 1.5 + Vector3.UP * 0.6
 		item.setup(_selected_id, 1)
+		item.apply_central_impulse((fwd + Vector3.UP * 0.3).normalized() * 3.0)
 	AudioManager.play_sfx(AudioManager.SFX.UI_CLICK)
 	refresh()
 	return true

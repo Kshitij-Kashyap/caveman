@@ -119,24 +119,28 @@ func _init_materials() -> void:
 	mat_skin.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_skin.albedo_color = Color(0.85, 0.60, 0.44)
 	mat_skin.roughness = 0.85
+	mat_skin.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_wood = StandardMaterial3D.new()
 	mat_wood.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_wood.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_wood.albedo_color = Color(0.42, 0.28, 0.16)
 	mat_wood.roughness = 0.92
+	mat_wood.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_stone = StandardMaterial3D.new()
 	mat_stone.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_stone.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_stone.albedo_color = Color(0.24, 0.26, 0.28)
 	mat_stone.roughness = 0.78
+	mat_stone.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_leather = StandardMaterial3D.new()
 	mat_leather.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_leather.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_leather.albedo_color = Color(0.55, 0.36, 0.22)
 	mat_leather.roughness = 0.90
+	mat_leather.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_fire = StandardMaterial3D.new()
 	mat_fire.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
@@ -144,12 +148,14 @@ func _init_materials() -> void:
 	mat_fire.emission_enabled = true
 	mat_fire.emission = Color(1.0, 0.45, 0.1)
 	mat_fire.emission_energy_multiplier = 3.5
+	mat_fire.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_bone = StandardMaterial3D.new()
 	mat_bone.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	mat_bone.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
 	mat_bone.albedo_color = Color(0.92, 0.88, 0.78)
 	mat_bone.roughness = 0.60
+	mat_bone.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_obsidian = StandardMaterial3D.new()
 	mat_obsidian.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
@@ -157,6 +163,7 @@ func _init_materials() -> void:
 	mat_obsidian.albedo_color = Color(0.06, 0.06, 0.08)
 	mat_obsidian.metallic = 0.35
 	mat_obsidian.roughness = 0.12
+	mat_obsidian.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	mat_volcanic = StandardMaterial3D.new()
 	mat_volcanic.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
@@ -164,6 +171,7 @@ func _init_materials() -> void:
 	mat_volcanic.emission_enabled = true
 	mat_volcanic.emission = Color(1.0, 0.30, 0.05)
 	mat_volcanic.emission_energy_multiplier = 3.5
+	mat_volcanic.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 func _build_viewmodel() -> void:
 	for c in get_children():

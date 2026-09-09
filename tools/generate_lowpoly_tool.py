@@ -54,7 +54,7 @@ class ObjBuilder:
             r2 = rings[r + 1]
             for i in range(n_per_ring):
                 ni = (i + 1) % n_per_ring
-                self.add_quad(r1[i], r1[ni], r2[ni], r2[i])
+                self.add_quad(r1[i], r2[i], r2[ni], r1[ni])
 
     def write_obj(self, filepath, mtl_filename):
         mat_groups = {}
@@ -116,19 +116,19 @@ def build_pickaxe_mesh():
 
     b.add_cylinder_section(rings)
     
-    # Cap bottom
+    # Cap bottom (-Y down)
     b_center = b.add_vertex(segments[0][2], segments[0][0] - 0.01, segments[0][3])
     r_bot = rings[0]
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(b_center, r_bot[ni], r_bot[i])
+        b.add_triangle(b_center, r_bot[i], r_bot[ni])
 
-    # Cap top
+    # Cap top (+Y up)
     t_center = b.add_vertex(segments[-1][2], segments[-1][0] + 0.01, segments[-1][3])
     r_top = rings[-1]
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(t_center, r_top[i], r_top[ni])
+        b.add_triangle(t_center, r_top[ni], r_top[i])
 
     # 2. STONE PICKAXE HEAD (Mounts across Y ~ 0.22, extending along Z axis)
     # Z- (Forward): Sharp curved pick point
@@ -220,17 +220,17 @@ def build_axe_mesh():
         rings.append(ring)
     b.add_cylinder_section(rings)
 
-    # Bottom cap
+    # Bottom cap (-Y down)
     b_center = b.add_vertex(segments[0][2], segments[0][0] - 0.01, segments[0][3])
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(b_center, rings[0][ni], rings[0][i])
+        b.add_triangle(b_center, rings[0][i], rings[0][ni])
 
-    # Top cap
+    # Top cap (+Y up)
     t_center = b.add_vertex(segments[-1][2], segments[-1][0] + 0.01, segments[-1][3])
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(t_center, rings[-1][i], rings[-1][ni])
+        b.add_triangle(t_center, rings[-1][ni], rings[-1][i])
 
     # 2. CHIPPED STONE AXE BLADE
     # Stretches along Z: +Z is poll/hammer, -Z is crescent cutting edge
@@ -328,13 +328,13 @@ def build_arm_mesh():
     f7 = b.add_vertex(f_xmax, f_ymax, f_zmax)
     f8 = b.add_vertex(f_xmin, f_ymax, f_zmax)
 
-    # 6 quad faces of fist
-    b.add_quad(f1, f2, f3, f4) # front
-    b.add_quad(f6, f5, f8, f7) # back
-    b.add_quad(f5, f1, f4, f8) # left
-    b.add_quad(f2, f6, f7, f3) # right
-    b.add_quad(f4, f3, f7, f8) # top
-    b.add_quad(f5, f6, f2, f1) # bottom
+    # 6 quad faces of fist (all outward CCW normals)
+    b.add_quad(f1, f4, f3, f2) # front (-Z)
+    b.add_quad(f6, f7, f8, f5) # back (+Z)
+    b.add_quad(f5, f8, f4, f1) # left (-X)
+    b.add_quad(f2, f3, f7, f6) # right (+X)
+    b.add_quad(f4, f8, f7, f3) # top (+Y)
+    b.add_quad(f1, f2, f6, f5) # bottom (-Y)
 
     # Chunky thumb resting on top
     th1 = b.add_vertex(-0.03, -0.05, -0.03)

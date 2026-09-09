@@ -12,6 +12,15 @@ signal collected(item_id: String, quantity: int, by_player: Node)
 
 var item_id: String = ""
 var quantity: int = 1
+var pickup_delay: float = 0.0
+
+func _physics_process(delta: float) -> void:
+	if pickup_delay > 0.0:
+		pickup_delay -= delta
+		if pickup_delay <= 0.0 and is_instance_valid(_pickup_area):
+			for body in _pickup_area.get_overlapping_bodies():
+				if _on_body_entered(body):
+					break
 
 @onready var _pickup_area: Area3D = $PickupArea
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
@@ -64,20 +73,24 @@ func _item_color() -> Color:
 		"crystal": return Color(0.50, 0.85, 0.95)
 		_:         return Color(0.70, 0.65, 0.55)
 
-func _on_body_entered(body: Node3D) -> void:
+func _on_body_entered(body: Node3D) -> bool:
+	if pickup_delay > 0.0:
+		return false
 	if not multiplayer.is_server():
-		return
+		return false
 	if not body is CharacterBody3D:
-		return
+		return false
 	## Check if it's a player
 	var player := body as Node
 	if not player.has_method("get_multiplayer_authority"):
-		return
+		return false
 	var inv := player.find_child("PlayerInventory") as PlayerInventory
 	if not inv:
-		return
+		return false
 	if inv.add_item(item_id, quantity):
 		collected.emit(item_id, quantity, player)
 		QuestManager.report_collect(item_id, quantity)
 		AudioManager.play_sfx(AudioManager.SFX.ITEM_PICKUP)
 		queue_free()
+		return true
+	return false

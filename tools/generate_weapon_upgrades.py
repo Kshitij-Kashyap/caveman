@@ -150,7 +150,7 @@ def build_tier2_attachments():
             ring_bot.append(b.add_vertex(ox + math.cos(ang) * (r + 0.003), y_center - 0.015, math.sin(ang) * (r + 0.003)))
         for i in range(n_pts):
             ni = (i + 1) % n_pts
-            b.add_quad(ring_top[i], ring_top[ni], ring_bot[ni], ring_bot[i])
+            b.add_quad(ring_bot[i], ring_top[i], ring_top[ni], ring_bot[ni])
 
     return b
 
@@ -213,7 +213,7 @@ def build_tier3_attachments():
             b_bot.append(b.add_vertex(ox + math.cos(ang) * (r + 0.004), band_y - 0.012, math.sin(ang) * (r + 0.004)))
         for i in range(n_pts):
             ni = (i + 1) % n_pts
-            b.add_quad(b_top[i], b_top[ni], b_bot[ni], b_bot[i])
+            b.add_quad(b_bot[i], b_top[i], b_top[ni], b_bot[ni])
 
     return b
 
@@ -237,7 +237,7 @@ def build_tier4_attachments():
             c_bot.append(b.add_vertex(ox + math.cos(ang) * (r + 0.008), collar_y - h*0.5, math.sin(ang) * (r + 0.008)))
         for i in range(n_pts):
             ni = (i + 1) % n_pts
-            b.add_quad(c_top[i], c_top[ni], c_bot[ni], c_bot[i])
+            b.add_quad(c_bot[i], c_top[i], c_top[ni], c_bot[ni])
 
     # Volcanic Magma Spikes (Glowing Ember Teeth)
     b.set_material("mat_volcanic")

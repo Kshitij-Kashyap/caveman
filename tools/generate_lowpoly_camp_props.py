@@ -43,6 +43,14 @@ class ObjBuilder:
         self.add_triangle(v1, v2, v3)
         self.add_triangle(v1, v3, v4)
 
+    def add_double_sided_quad(self, v1, v2, v3, v4):
+        self.add_quad(v1, v2, v3, v4)
+        self.add_quad(v4, v3, v2, v1)
+
+    def add_double_sided_triangle(self, v1, v2, v3):
+        self.add_triangle(v1, v2, v3)
+        self.add_triangle(v3, v2, v1)
+
     def add_cylinder(self, rings):
         num_rings = len(rings)
         if num_rings < 2:
@@ -53,7 +61,7 @@ class ObjBuilder:
             r2 = rings[r + 1]
             for i in range(n_pts):
                 ni = (i + 1) % n_pts
-                self.add_quad(r1[i], r1[ni], r2[ni], r2[i])
+                self.add_quad(r1[i], r2[i], r2[ni], r1[ni])
 
     def write_obj(self, filepath, mtl_filename):
         mat_groups = {}
@@ -145,15 +153,15 @@ def build_palm_tree():
 
         v3_tip = b.add_vertex(*p3)
 
-        # Build frond quads/tris
-        b.add_triangle(v0, v1_l, v1_c)
-        b.add_triangle(v0, v1_c, v1_r)
+        # Build frond quads/tris (double sided so leaves are visible from top and bottom)
+        b.add_double_sided_triangle(v0, v1_l, v1_c)
+        b.add_double_sided_triangle(v0, v1_c, v1_r)
 
-        b.add_quad(v1_l, v2_l, v2_c, v1_c)
-        b.add_quad(v1_c, v2_c, v2_r, v1_r)
+        b.add_double_sided_quad(v1_l, v2_l, v2_c, v1_c)
+        b.add_double_sided_quad(v1_c, v2_c, v2_r, v1_r)
 
-        b.add_triangle(v2_l, v3_tip, v2_c)
-        b.add_triangle(v2_c, v3_tip, v2_r)
+        b.add_double_sided_triangle(v2_l, v3_tip, v2_c)
+        b.add_double_sided_triangle(v2_c, v3_tip, v2_r)
 
     return b
 
@@ -169,7 +177,6 @@ def build_primitive_hut():
     w, h, d = 2.4, 3.2, 3.0
 
     # 4 corner leaning log posts
-    # Front-left to peak, Front-right to peak, Back-left to peak, Back-right to peak
     ridge_f = b.add_vertex(0.0, h, -d * 0.5)
     ridge_b = b.add_vertex(0.0, h,  d * 0.5)
 
@@ -178,25 +185,25 @@ def build_primitive_hut():
     bl_bot = b.add_vertex(-w, 0.0,  d * 0.5)
     br_bot = b.add_vertex( w, 0.0,  d * 0.5)
 
-    # Ridge pole beam
-    b.add_quad(ridge_f, ridge_b, ridge_b, ridge_f)
+    # Ridge pole beam (double sided)
+    b.add_double_sided_quad(ridge_f, ridge_b, ridge_b, ridge_f)
 
     # Animal hide canopy (mat_clothing)
     b.set_material("mat_clothing")
 
-    # Left roof slope
-    b.add_quad(fl_bot, bl_bot, ridge_b, ridge_f)
+    # Left roof slope (double sided so visible inside and out)
+    b.add_double_sided_quad(fl_bot, bl_bot, ridge_b, ridge_f)
 
-    # Right roof slope
-    b.add_quad(ridge_f, ridge_b, br_bot, fr_bot)
+    # Right roof slope (double sided)
+    b.add_double_sided_quad(ridge_f, ridge_b, br_bot, fr_bot)
 
-    # Back wall hide
-    b.add_triangle(bl_bot, br_bot, ridge_b)
+    # Back wall hide (double sided)
+    b.add_double_sided_triangle(bl_bot, br_bot, ridge_b)
 
     # Wooden base support beams
     b.set_material("mat_wood")
-    b.add_quad(fl_bot, fr_bot, fr_bot, fl_bot)
-    b.add_quad(bl_bot, br_bot, br_bot, bl_bot)
+    b.add_double_sided_quad(fl_bot, fr_bot, fr_bot, fl_bot)
+    b.add_double_sided_quad(bl_bot, br_bot, br_bot, bl_bot)
 
     return b
 
@@ -209,9 +216,7 @@ def build_mammoth_bone():
     b.set_material("mat_accent") # Bone ivory white
 
     # Bone shaft along X axis (length ~ 2.2m)
-    # Ends have chunky double-knob joints
     shaft_rings = [
-        # (x, r)
         (-0.8, 0.12),
         (-0.4, 0.10),
         ( 0.0, 0.09),
@@ -244,7 +249,7 @@ def build_mammoth_bone():
         tip = b.add_vertex(kx - 0.08, 0.0, kz)
         for i in range(n_pts):
             ni = (i + 1) % n_pts
-            b.add_triangle(tip, k_ring2[ni], k_ring2[i])
+            b.add_triangle(tip, k_ring2[i], k_ring2[ni])
 
     # Right knobs (two rounded lumps at X=+1.0)
     for sign_z in [-1, 1]:
@@ -261,7 +266,7 @@ def build_mammoth_bone():
         tip = b.add_vertex(kx + 0.08, 0.0, kz)
         for i in range(n_pts):
             ni = (i + 1) % n_pts
-            b.add_triangle(tip, k_ring2[i], k_ring2[ni])
+            b.add_triangle(tip, k_ring2[ni], k_ring2[i])
 
     return b
 
@@ -273,7 +278,7 @@ def build_crate():
     b = ObjBuilder("primitive_crate")
     b.set_material("mat_wood")
 
-    # Chunky box (0.9m x 0.9m x 0.9m) with beveled chamfer corners
+    # Chunky box (0.9m x 0.9m x 0.9m)
     s = 0.45
     # 8 main corner vertices
     v1 = b.add_vertex(-s, 0.0,   -s)
@@ -286,13 +291,13 @@ def build_crate():
     v7 = b.add_vertex( s, s*2.0,  s)
     v8 = b.add_vertex(-s, s*2.0,  s)
 
-    # 6 box faces
-    b.add_quad(v1, v2, v3, v4) # Front
-    b.add_quad(v6, v5, v8, v7) # Back
-    b.add_quad(v5, v1, v4, v8) # Left
-    b.add_quad(v2, v6, v7, v3) # Right
-    b.add_quad(v4, v3, v7, v8) # Top
-    b.add_quad(v5, v6, v2, v1) # Bottom
+    # 6 box faces (all outward CCW normals)
+    b.add_quad(v1, v4, v3, v2) # Front (-Z)
+    b.add_quad(v6, v7, v8, v5) # Back (+Z)
+    b.add_quad(v5, v8, v4, v1) # Left (-X)
+    b.add_quad(v2, v3, v7, v6) # Right (+X)
+    b.add_quad(v4, v8, v7, v3) # Top (+Y)
+    b.add_quad(v1, v2, v6, v5) # Bottom (-Y)
 
     # Leather/iron strap bindings around middle
     b.set_material("mat_clothing")
@@ -310,10 +315,10 @@ def build_crate():
     s7 = b.add_vertex( st, strap_y2,  st)
     s8 = b.add_vertex(-st, strap_y2,  st)
 
-    b.add_quad(s1, s2, s3, s4)
-    b.add_quad(s6, s5, s8, s7)
-    b.add_quad(s5, s1, s4, s8)
-    b.add_quad(s2, s6, s7, s3)
+    b.add_quad(s1, s4, s3, s2)
+    b.add_quad(s6, s7, s8, s5)
+    b.add_quad(s5, s8, s4, s1)
+    b.add_quad(s2, s3, s7, s6)
 
     return b
 
@@ -325,10 +330,7 @@ def build_boulder():
     b = ObjBuilder("boulder")
     b.set_material("mat_stone")
 
-    # Faceted low-poly boulder with random angular cuts
-    # 4 rings of 6 vertices
     layer_data = [
-        # (y, r, rot_offset)
         (0.00, 0.80, 0.0),
         (0.40, 1.15, 0.3),
         (0.85, 1.05, -0.2),
@@ -337,7 +339,6 @@ def build_boulder():
 
     rings = []
     n_pts = 6
-    # Seeded angular offsets for organic facet look
     radii_factors = [
         [0.9, 1.1, 0.85, 1.05, 0.95, 1.15],
         [1.15, 0.95, 1.2, 0.9, 1.1, 1.0],
@@ -355,17 +356,17 @@ def build_boulder():
 
     b.add_cylinder(rings)
 
-    # Bottom cap
+    # Bottom cap (pointing -Y down)
     b_center = b.add_vertex(0.0, -0.05, 0.0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(b_center, rings[0][ni], rings[0][i])
+        b.add_triangle(b_center, rings[0][i], rings[0][ni])
 
-    # Top cap
+    # Top cap (pointing +Y up)
     t_center = b.add_vertex(0.05, 1.55, -0.05)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(t_center, rings[-1][i], rings[-1][ni])
+        b.add_triangle(t_center, rings[-1][ni], rings[-1][i])
 
     return b
 
@@ -377,7 +378,6 @@ def build_barrel():
     b = ObjBuilder("primitive_barrel")
     b.set_material("mat_wood")
 
-    # Barrel with 8 sides and bulging belly
     segs = [
         (0.00, 0.40),
         (0.25, 0.48),
@@ -397,16 +397,16 @@ def build_barrel():
 
     b.add_cylinder(rings)
 
-    # Caps
+    # Caps (bottom -Y down, top +Y up)
     bot_c = b.add_vertex(0, 0, 0)
     top_c = b.add_vertex(0, 1.10, 0)
     for i in range(n_pts):
         ni = (i + 1) % n_pts
-        b.add_triangle(bot_c, rings[0][ni], rings[0][i])
-        b.add_triangle(top_c, rings[-1][i], rings[-1][ni])
+        b.add_triangle(bot_c, rings[0][i], rings[0][ni])
+        b.add_triangle(top_c, rings[-1][ni], rings[-1][i])
 
     # 2 metal hoops
-    b.set_material("mat_stone") # darker band
+    b.set_material("mat_stone")
     for hoop_y in [0.25, 0.85]:
         h_r1 = []
         h_r2 = []
