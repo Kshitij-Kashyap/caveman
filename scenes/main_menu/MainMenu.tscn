@@ -198,6 +198,16 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_BtnHover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_BtnPressed")
 text = "WARRIOR CUSTOMIZATION"
 
+[node name="DebugIslandBtn" type="Button" parent="HSplit/RightPanel/MarginContainer/VBox/MainPanel"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_BtnNormal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_BtnHover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_BtnPressed")
+text = "🏝️ DEBUG ISLAND (SANDBOX)"
+
 [node name="QuitBtn" type="Button" parent="HSplit/RightPanel/MarginContainer/VBox/MainPanel"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -352,6 +362,7 @@ autowrap_mode = 3
 
 [connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MainPanel/PlayBtn" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MainPanel/CustomizeBtn" to="." method="_on_customize_pressed"]
+[connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MainPanel/DebugIslandBtn" to="." method="_on_debug_island_pressed"]
 [connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MainPanel/QuitBtn" to="." method="_on_quit_pressed"]
 [connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MultiplayerPanel/HostBtn" to="." method="_on_host_pressed"]
 [connection signal="pressed" from="HSplit/RightPanel/MarginContainer/VBox/MultiplayerPanel/HBox/JoinBtn" to="." method="_on_join_pressed"]

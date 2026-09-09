@@ -175,6 +175,10 @@ func _on_back_pressed() -> void:
 	_main_panel.visible = true
 	_status_label.text = ""
 
+func _on_debug_island_pressed() -> void:
+	AudioManager.play_sfx(AudioManager.SFX.UI_CLICK)
+	GameManager.enter_debug_island()
+
 func _on_quit_pressed() -> void:
 	AudioManager.play_sfx(AudioManager.SFX.UI_CLICK)
 	get_tree().quit()

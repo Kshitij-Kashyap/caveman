@@ -51,6 +51,12 @@ func enter_camp() -> void:
 func return_to_camp() -> void:
 	enter_camp()
 
+## Enter the debug island sandbox map
+func enter_debug_island() -> void:
+	active_players.clear()
+	change_state(GameState.CAMP)
+	get_tree().change_scene_to_file("res://scenes/maps/DebugIsland.tscn")
+
 ## Fully disconnect and return to main menu
 func return_to_main_menu() -> void:
 	active_players.clear()

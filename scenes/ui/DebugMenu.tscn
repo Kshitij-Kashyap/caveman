@@ -1,22 +1,93 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://ddebugmenu"]
 
 [ext_resource type="Script" path="res://scripts/ui/DebugMenu.gd" id="1_debug"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBox_ToggleBtn"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.12, 0.14, 0.16, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.85, 1, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_ToggleBtnHover"]
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+bg_color = Color(0.18, 0.24, 0.28, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.3, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_Panel"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.09, 0.1, 0.12, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.8, 0.95, 0.75)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 8
+
 [node name="DebugMenu" type="CanvasLayer"]
-script = ExtResource("1_debug")
+process_mode = 3
 layer = 100
+script = ExtResource("1_debug")
+
+[node name="DebugToggleBtn" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 44.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBox_ToggleBtn")
+theme_override_styles/hover = SubResource("StyleBox_ToggleBtnHover")
+text = "🛠️ DEBUG (F1)"
 
 [node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 1
+visible = false
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -330.0
+offset_left = -380.0
 offset_top = 10.0
 offset_right = -10.0
 offset_bottom = -10.0
-visible = false
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_Panel")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel"]
 layout_mode = 2
@@ -25,143 +96,594 @@ horizontal_scroll_mode = 0
 [node name="VBox" type="VBoxContainer" parent="Panel/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 5
+theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="Panel/ScrollContainer/VBox"]
-text = "▶ DEBUG MENU (F1)"
-theme_override_font_sizes/font_size = 14
-theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+[node name="HeaderBox" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
 
-[node name="SeedRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
-
-[node name="SeedLabel" type="Label" parent="Panel/ScrollContainer/VBox/SeedRow"]
-text = "Seed:"
-custom_minimum_size = Vector2(50, 0)
-theme_override_font_sizes/font_size = 12
-
-[node name="SeedInput" type="LineEdit" parent="Panel/ScrollContainer/VBox/SeedRow"]
+[node name="Title" type="Label" parent="Panel/ScrollContainer/VBox/HeaderBox"]
+layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "random"
-theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 15
+text = "▶ DEBUG CONSOLE"
 
-[node name="RegenBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🗺 Regen Dungeon"
-theme_override_font_sizes/font_size = 12
-
-[node name="SepRat" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
-
-[node name="RatPhysicsHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
-text = "🐀 JOLT PHYSICS RATS"
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(0.4, 0.9, 1.0, 1)
-
-[node name="SpawnPhysicsRatBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🐁 Spawn Physics Rat"
-theme_override_font_sizes/font_size = 12
-
-[node name="SpawnSwarmBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🐀 Spawn Rat Swarm (x10)"
-theme_override_font_sizes/font_size = 12
-
-[node name="ShockwaveBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "💥 Shockwave Blast"
-theme_override_font_sizes/font_size = 12
-
-[node name="SpawnRatCreatureBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🐾 Spawn Rat (AI Creature)"
-theme_override_font_sizes/font_size = 12
-
-[node name="ClearRatsBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🧹 Clear Physics Rats"
-theme_override_font_sizes/font_size = 12
-
-[node name="Sep1" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
-
-[node name="SpawnDeer" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Spawn Deer"
-theme_override_font_sizes/font_size = 12
-
-[node name="SpawnBoar" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Spawn Boar"
-theme_override_font_sizes/font_size = 12
-
-[node name="SpawnWolf" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Spawn Wolf"
-theme_override_font_sizes/font_size = 12
-
-[node name="SpawnBear" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Spawn Bear"
-theme_override_font_sizes/font_size = 12
-
-[node name="Sep2" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
-
-[node name="GiveResBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "💰 Give All Resources"
-theme_override_font_sizes/font_size = 12
-
-[node name="CompleteQuestBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "✅ Complete Quest"
-theme_override_font_sizes/font_size = 12
-
-[node name="TeleportExtBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "📍 Teleport → Extraction"
-theme_override_font_sizes/font_size = 12
-
-[node name="ToggleAIBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "🤖 Toggle AI"
-theme_override_font_sizes/font_size = 12
-
-[node name="SepWeapon" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
-
-[node name="WeaponHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
-text = "🗡️ CLUB UPGRADES"
-theme_override_font_sizes/font_size = 12
-theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
-
-[node name="ClubT1Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Tier 1: Crude Club (32 DMG)"
-theme_override_font_sizes/font_size = 12
-
-[node name="ClubT2Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Tier 2: Bone Spikes (48 DMG)"
-theme_override_font_sizes/font_size = 12
-
-[node name="ClubT3Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Tier 3: Obsidian Cleaver (65 DMG)"
-theme_override_font_sizes/font_size = 12
-
-[node name="ClubT4Btn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "Tier 4: Chieftain Totem (85 DMG)"
-theme_override_font_sizes/font_size = 12
-
-[node name="Sep3" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
-
-[node name="MenuBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
-text = "← Main Menu"
-theme_override_font_sizes/font_size = 12
+[node name="CloseBtn" type="Button" parent="Panel/ScrollContainer/VBox/HeaderBox"]
+custom_minimum_size = Vector2(28, 24)
+layout_mode = 2
+text = "✕"
 
 [node name="StatusLabel" type="Label" parent="Panel/ScrollContainer/VBox"]
-text = ""
-autowrap_mode = 3
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 1, 0.7, 1)
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
+text = "Ready (F1 or ~ to toggle)"
+autowrap_mode = 3
 
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/RegenBtn" to="." method="_on_regen_dungeon"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnPhysicsRatBtn" to="." method="_on_spawn_rat_physics"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnSwarmBtn" to="." method="_on_spawn_rat_swarm"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ShockwaveBtn" to="." method="_on_shockwave_blast"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnRatCreatureBtn" to="." method="_on_spawn_rat_creature"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClearRatsBtn" to="." method="_on_clear_rats"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnDeer" to="." method="_on_spawn_deer"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnBoar" to="." method="_on_spawn_boar"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnWolf" to="." method="_on_spawn_wolf"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpawnBear" to="." method="_on_spawn_bear"]
+[node name="Sep0" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="CheatsHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+text = "🛡️ PLAYER CHEATS"
+
+[node name="GodModeCheck" type="CheckBox" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "God Mode (No Damage)"
+
+[node name="InfStaminaCheck" type="CheckBox" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Infinite Stamina"
+
+[node name="FlightCheck" type="CheckBox" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Noclip / 3D Flight (WASD + Space/Ctrl)"
+
+[node name="SpeedRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SpeedLabel" type="Label" parent="Panel/ScrollContainer/VBox/SpeedRow"]
+custom_minimum_size = Vector2(55, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Speed:"
+
+[node name="Speed1Btn" type="Button" parent="Panel/ScrollContainer/VBox/SpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "1x"
+
+[node name="Speed2Btn" type="Button" parent="Panel/ScrollContainer/VBox/SpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "2x"
+
+[node name="Speed5Btn" type="Button" parent="Panel/ScrollContainer/VBox/SpeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "5x"
+
+[node name="JumpRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="JumpLabel" type="Label" parent="Panel/ScrollContainer/VBox/JumpRow"]
+custom_minimum_size = Vector2(55, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Jump:"
+
+[node name="Jump1Btn" type="Button" parent="Panel/ScrollContainer/VBox/JumpRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "1x"
+
+[node name="Jump2Btn" type="Button" parent="Panel/ScrollContainer/VBox/JumpRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "2x"
+
+[node name="Jump3Btn" type="Button" parent="Panel/ScrollContainer/VBox/JumpRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "3x"
+
+[node name="PlayerActionRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="HealBtn" type="Button" parent="Panel/ScrollContainer/VBox/PlayerActionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "❤️ Heal (100 HP)"
+
+[node name="RagdollBtn" type="Button" parent="Panel/ScrollContainer/VBox/PlayerActionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "💀 Test Ragdoll"
+
+[node name="TeleportHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "📍 ISLAND SECTOR TELEPORTS"
+
+[node name="TeleportRow1" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="TeleHubBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🏛️ Hub"
+
+[node name="TeleRangeBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🏹 Range"
+
+[node name="TeleArenaBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "⚔️ Arena"
+
+[node name="TeleportRow2" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="TelePhysicsBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🛢️ Physics"
+
+[node name="TeleParkourBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🏃 Parkour"
+
+[node name="TeleCliffBtn" type="Button" parent="Panel/ScrollContainer/VBox/TeleportRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🌅 Cliff"
+
+[node name="SepArsenal" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ArsenalHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "🗡️ ARSENAL & WEAPONS"
+
+[node name="ToolRow1" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="EquipPickaxeBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Pickaxe (1)"
+
+[node name="EquipAxeBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Axe (2)"
+
+[node name="EquipSpearBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Spear (3)"
+
+[node name="ToolRow2" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="EquipClubBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Club (4)"
+
+[node name="EquipTorchBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Torch (5)"
+
+[node name="RefillSpearBtn" type="Button" parent="Panel/ScrollContainer/VBox/ToolRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "+10 Spears"
+
+[node name="ClubTierRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ClubT1Btn" type="Button" parent="Panel/ScrollContainer/VBox/ClubTierRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "T1 Crude"
+
+[node name="ClubT2Btn" type="Button" parent="Panel/ScrollContainer/VBox/ClubTierRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "T2 Bone"
+
+[node name="ClubT3Btn" type="Button" parent="Panel/ScrollContainer/VBox/ClubTierRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "T3 Obsidian"
+
+[node name="ClubT4Btn" type="Button" parent="Panel/ScrollContainer/VBox/ClubTierRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "T4 Totem"
+
+[node name="SepLoot" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="LootHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "💰 LOOT & RESOURCES"
+
+[node name="GiveResBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "💰 Give All Resources (+50)"
+
+[node name="ResGrid" type="GridContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+columns = 3
+
+[node name="ResWoodBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+20 Wood"
+
+[node name="ResStoneBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+20 Stone"
+
+[node name="ResFlintBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+20 Flint"
+
+[node name="ResMeatBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+15 Meat"
+
+[node name="ResRoastBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+10 Roast"
+
+[node name="ResBoneBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+15 Bone"
+
+[node name="ResHideBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+15 Hide"
+
+[node name="ResCopperBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+15 Copper"
+
+[node name="ResCrystalBtn" type="Button" parent="Panel/ScrollContainer/VBox/ResGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "+10 Crystal"
+
+[node name="ClearInvBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🗑️ Clear Player Inventory"
+
+[node name="SepCreatures" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="CreatureHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "🐾 CREATURES & COMBAT"
+
+[node name="CreatureRow1" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SpawnRatCreatureBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐀 Rat"
+
+[node name="SpawnDeerBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🦌 Deer"
+
+[node name="SpawnBoarBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐗 Boar"
+
+[node name="CreatureRow2" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SpawnWolfBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐺 Wolf"
+
+[node name="SpawnBearBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐻 Bear"
+
+[node name="SpawnWolfPackBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐺 Pack (x5)"
+
+[node name="CreatureControlRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ToggleAIBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureControlRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🤖 Toggle AI"
+
+[node name="ClearCreaturesBtn" type="Button" parent="Panel/ScrollContainer/VBox/CreatureControlRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🧹 Clear Mobs"
+
+[node name="SepPhysics" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="PhysicsHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.5, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "💥 JOLT PHYSICS & DEMOLITION"
+
+[node name="PhysicsRow1" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SpawnPhysicsRatBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐁 Physics Rat"
+
+[node name="SpawnSwarmBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🐀 Swarm (x10)"
+
+[node name="ShockwaveBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "💥 Shockwave"
+
+[node name="PhysicsRow2" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SpawnBarrelBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🛢️ Barrel"
+
+[node name="SpawnCrateBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "📦 Crate"
+
+[node name="SpawnWheelBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "☸️ Wheel"
+
+[node name="SpawnBoneBtn" type="Button" parent="Panel/ScrollContainer/VBox/PhysicsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🦴 Bone"
+
+[node name="ClearPropsRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="ClearRatsBtn" type="Button" parent="Panel/ScrollContainer/VBox/ClearPropsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🧹 Clear Rats"
+
+[node name="ClearPropsBtn" type="Button" parent="Panel/ScrollContainer/VBox/ClearPropsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🧹 Clear Props"
+
+[node name="SepEnv" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="EnvHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.35, 1)
+theme_override_font_sizes/font_size = 13
+text = "🌅 ENVIRONMENT & TIME"
+
+[node name="TimeRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="TimeDawnBtn" type="Button" parent="Panel/ScrollContainer/VBox/TimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🌅 Dawn"
+
+[node name="TimeNoonBtn" type="Button" parent="Panel/ScrollContainer/VBox/TimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "☀️ Noon"
+
+[node name="TimeDuskBtn" type="Button" parent="Panel/ScrollContainer/VBox/TimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🌇 Dusk"
+
+[node name="TimeNightBtn" type="Button" parent="Panel/ScrollContainer/VBox/TimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "🌙 Night"
+
+[node name="SepNav" type="HSeparator" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="NavHeader" type="Label" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 13
+text = "🗺️ SCENE NAVIGATION"
+
+[node name="CampBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🏕️ Return to Tribe Camp"
+
+[node name="DungeonRow" type="HBoxContainer" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SeedInput" type="LineEdit" parent="Panel/ScrollContainer/VBox/DungeonRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Seed (optional)"
+theme_override_font_sizes/font_size = 11
+
+[node name="RegenBtn" type="Button" parent="Panel/ScrollContainer/VBox/DungeonRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🗺️ Expedition"
+
+[node name="MenuBtn" type="Button" parent="Panel/ScrollContainer/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "← Main Menu"
+
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/HeaderBox/CloseBtn" to="." method="_toggle"]
+[connection signal="toggled" from="Panel/ScrollContainer/VBox/GodModeCheck" to="." method="_on_god_mode_toggled"]
+[connection signal="toggled" from="Panel/ScrollContainer/VBox/InfStaminaCheck" to="." method="_on_inf_stamina_toggled"]
+[connection signal="toggled" from="Panel/ScrollContainer/VBox/FlightCheck" to="." method="_on_flight_toggled"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpeedRow/Speed1Btn" to="." method="_on_speed_1x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpeedRow/Speed2Btn" to="." method="_on_speed_2x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/SpeedRow/Speed5Btn" to="." method="_on_speed_5x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/JumpRow/Jump1Btn" to="." method="_on_jump_1x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/JumpRow/Jump2Btn" to="." method="_on_jump_2x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/JumpRow/Jump3Btn" to="." method="_on_jump_3x"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PlayerActionRow/HealBtn" to="." method="_on_heal_player"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PlayerActionRow/RagdollBtn" to="." method="_on_suicide_ragdoll"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow1/TeleHubBtn" to="." method="_on_teleport_hub"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow1/TeleRangeBtn" to="." method="_on_teleport_range"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow1/TeleArenaBtn" to="." method="_on_teleport_arena"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow2/TelePhysicsBtn" to="." method="_on_teleport_physics"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow2/TeleParkourBtn" to="." method="_on_teleport_parkour"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportRow2/TeleCliffBtn" to="." method="_on_teleport_cliff"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow1/EquipPickaxeBtn" to="." method="_on_equip_pickaxe"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow1/EquipAxeBtn" to="." method="_on_equip_axe"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow1/EquipSpearBtn" to="." method="_on_equip_spear"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow2/EquipClubBtn" to="." method="_on_equip_club"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow2/EquipTorchBtn" to="." method="_on_equip_torch"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToolRow2/RefillSpearBtn" to="." method="_on_refill_spears"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubTierRow/ClubT1Btn" to="." method="_on_club_t1"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubTierRow/ClubT2Btn" to="." method="_on_club_t2"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubTierRow/ClubT3Btn" to="." method="_on_club_t3"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubTierRow/ClubT4Btn" to="." method="_on_club_t4"]
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/GiveResBtn" to="." method="_on_give_all_resources"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/CompleteQuestBtn" to="." method="_on_complete_quest"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/TeleportExtBtn" to="." method="_on_teleport_extraction"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ToggleAIBtn" to="." method="_on_toggle_ai"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT1Btn" to="." method="_on_club_t1"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT2Btn" to="." method="_on_club_t2"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT3Btn" to="." method="_on_club_t3"]
-[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClubT4Btn" to="." method="_on_club_t4"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResWoodBtn" to="." method="_on_give_wood"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResStoneBtn" to="." method="_on_give_stone"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResFlintBtn" to="." method="_on_give_flint"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResMeatBtn" to="." method="_on_give_meat"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResRoastBtn" to="." method="_on_give_roast_meat"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResBoneBtn" to="." method="_on_give_bone"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResHideBtn" to="." method="_on_give_hide"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResCopperBtn" to="." method="_on_give_copper"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ResGrid/ResCrystalBtn" to="." method="_on_give_crystal"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClearInvBtn" to="." method="_on_clear_inventory"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow1/SpawnRatCreatureBtn" to="." method="_on_spawn_rat_creature"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow1/SpawnDeerBtn" to="." method="_on_spawn_deer"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow1/SpawnBoarBtn" to="." method="_on_spawn_boar"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow2/SpawnWolfBtn" to="." method="_on_spawn_wolf"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow2/SpawnBearBtn" to="." method="_on_spawn_bear"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureRow2/SpawnWolfPackBtn" to="." method="_on_spawn_wolf_pack"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureControlRow/ToggleAIBtn" to="." method="_on_toggle_ai"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CreatureControlRow/ClearCreaturesBtn" to="." method="_on_clear_creatures"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow1/SpawnPhysicsRatBtn" to="." method="_on_spawn_rat_physics"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow1/SpawnSwarmBtn" to="." method="_on_spawn_rat_swarm"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow1/ShockwaveBtn" to="." method="_on_shockwave_blast"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow2/SpawnBarrelBtn" to="." method="_on_spawn_barrel"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow2/SpawnCrateBtn" to="." method="_on_spawn_crate"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow2/SpawnWheelBtn" to="." method="_on_spawn_stone_wheel"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/PhysicsRow2/SpawnBoneBtn" to="." method="_on_spawn_mammoth_bone"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClearPropsRow/ClearRatsBtn" to="." method="_on_clear_rats"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/ClearPropsRow/ClearPropsBtn" to="." method="_on_clear_props"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TimeRow/TimeDawnBtn" to="." method="_on_time_dawn"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TimeRow/TimeNoonBtn" to="." method="_on_time_noon"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TimeRow/TimeDuskBtn" to="." method="_on_time_dusk"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/TimeRow/TimeNightBtn" to="." method="_on_time_midnight"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/CampBtn" to="." method="_on_return_to_camp"]
+[connection signal="pressed" from="Panel/ScrollContainer/VBox/DungeonRow/RegenBtn" to="." method="_on_regen_dungeon"]
 [connection signal="pressed" from="Panel/ScrollContainer/VBox/MenuBtn" to="." method="_on_return_to_menu"]

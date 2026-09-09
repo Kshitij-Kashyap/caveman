@@ -84,6 +84,8 @@ var is_dead: bool:
 
 # State
 var is_ragdoll: bool = false
+var god_mode: bool = false
+var infinite_stamina: bool = false
 var _authority_id: int = 1
 var _current_interactable: Node = null
 var _camera_pitch: float:
@@ -341,6 +343,9 @@ func _physics_process(delta: float) -> void:
 		fp_camera.process_camera(delta, Vector3.ZERO, false, 0.0)
 		return
 
+	if infinite_stamina and stamina_comp:
+		stamina_comp.current_stamina = stamina_comp.max_stamina
+
 	# 1. Locomotion
 	var loco := controller.update_locomotion(delta, self, stamina_comp)
 
@@ -529,6 +534,8 @@ func _rpc_client_damage(amount: float, kd: Vector3, kf: float, synced_hp: float)
 		enable_ragdoll(kd.normalized() * kf)
 
 func _apply_damage_local(amount: float, knockback_dir: Vector3, knockback_force: float) -> void:
+	if god_mode:
+		return
 	health_comp.take_damage(amount, knockback_dir, knockback_force)
 	if health_comp.is_dead:
 		enable_ragdoll(knockback_dir.normalized() * maxf(knockback_force, 12.0))
@@ -538,6 +545,8 @@ func _apply_damage_local(amount: float, knockback_dir: Vector3, knockback_force:
 		velocity += knockback_dir.normalized() * knockback_force
 
 func apply_knockback(direction: Vector3, force: float) -> void:
+	if god_mode:
+		return
 	if force > 15.0:
 		enable_ragdoll(direction.normalized() * force)
 	else:
@@ -545,6 +554,25 @@ func apply_knockback(direction: Vector3, force: float) -> void:
 
 func heal(amount: float) -> void:
 	health_comp.heal(amount)
+
+func set_god_mode(enabled: bool) -> void:
+	god_mode = enabled
+	if enabled and health_comp:
+		health_comp.current_health = health_comp.max_health
+
+func set_flight_mode(enabled: bool) -> void:
+	if controller:
+		controller.is_flying = enabled
+		if enabled:
+			velocity = Vector3.ZERO
+
+func set_speed_multiplier(mult: float) -> void:
+	if controller:
+		controller.speed_multiplier = mult
+
+func set_jump_multiplier(mult: float) -> void:
+	if controller:
+		controller.jump_multiplier = mult
 
 func _on_died() -> void:
 	player_died.emit()

@@ -649,7 +649,65 @@ func _ready() -> void:
 	assert(marker.is_equal_approx(expected), "Player marker must track the local player")
 	map_menu.toggle()
 	assert(not map_menu.is_open(), "M toggle must close the map")
-	print("  -> MapMenu passed.")
+	# 24. Test Debug Island & Enhanced Debug Menu
+	print("[24/24] Testing Debug Island & Enhanced Debug Menu...")
+	var island_scene := load("res://scenes/maps/DebugIsland.tscn") as PackedScene
+	assert(island_scene != null, "DebugIsland scene must load")
+	var island := island_scene.instantiate() as Node3D
+	add_child(island)
+	await get_tree().process_frame
+
+	assert(island.find_child("IslandTerrain", true, false) != null, "Must have IslandTerrain")
+	assert(island.find_child("OceanPlane", true, false) != null, "Must have OceanPlane")
+	assert(island.find_child("PlayerSpawner", true, false) != null, "Must have PlayerSpawner")
+	assert(island.find_child("ArsenalRange", true, false) != null, "Must have ArsenalRange")
+	assert(island.find_child("CombatArena", true, false) != null, "Must have CombatArena")
+	assert(island.find_child("PhysicsPlayground", true, false) != null, "Must have PhysicsPlayground")
+	assert(island.find_child("ParkourZone", true, false) != null, "Must have ParkourZone")
+
+	var debug_menu := island.find_child("DebugMenu", true, false)
+	assert(debug_menu != null, "DebugIsland must contain DebugMenu")
+	assert(debug_menu.find_child("DebugToggleBtn", true, false) != null, "Must have floating toggle button")
+
+	# Test DebugMenu toggle and cheat methods
+	debug_menu._toggle()
+	assert(debug_menu._panel.visible, "DebugMenu panel must become visible on toggle")
+
+	var active_player = GameManager.get_local_player()
+	if not active_player:
+		active_player = player
+		GameManager.register_player(1, active_player)
+	assert(active_player != null, "An active local player must be registered")
+
+	debug_menu._on_god_mode_toggled(true)
+	assert(active_player.god_mode == true, "Player god mode must be enabled")
+
+	debug_menu._on_inf_stamina_toggled(true)
+	assert(active_player.infinite_stamina == true, "Player infinite stamina must be enabled")
+
+	debug_menu._on_flight_toggled(true)
+	assert(active_player.controller.is_flying == true, "Player flight mode must be enabled")
+
+	debug_menu._on_speed_2x()
+	assert(active_player.controller.speed_multiplier == 2.0, "Speed multiplier must be 2.0")
+
+	debug_menu._on_give_all_resources()
+	assert(ProgressionManager.stored_resources.get("wood", 0) >= 50, "Resources must be granted")
+
+	debug_menu._on_spawn_rat_physics()
+	debug_menu._on_shockwave_blast()
+	debug_menu._apply_time(18.0)
+	assert(island.current_hour == 18.0, "Time of day must update")
+
+	debug_menu._toggle()
+	assert(not debug_menu._panel.visible, "DebugMenu panel must close on toggle")
+
+	debug_menu._on_flight_toggled(false)
+	debug_menu._on_god_mode_toggled(false)
+	debug_menu._on_speed_1x()
+
+	island.queue_free()
+	print("  -> Debug Island & Enhanced Debug Menu passed.")
 	print("==================================================")
 	get_tree().quit(0)
 
