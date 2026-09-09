@@ -70,6 +70,15 @@ func _throw_rock() -> void:
 	_regen_timer = 0.0
 	rock_count_changed.emit(current_rocks, MAX_ROCKS)
 
+## Recharge one rock (e.g. via the Crafting Fire glow-charge recipe).
+## Returns false when already full.
+func add_rock() -> bool:
+	if current_rocks >= MAX_ROCKS:
+		return false
+	current_rocks += 1
+	rock_count_changed.emit(current_rocks, MAX_ROCKS)
+	return true
+
 func _tick_regen(delta: float) -> void:
 	if current_rocks >= MAX_ROCKS:
 		return

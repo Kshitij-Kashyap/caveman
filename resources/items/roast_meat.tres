@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "roast_meat"
+item_name = "Roast Meat"
+item_type = 3
+description = "Slow-roasted over the tribal fire. Eating it restores 30 health."
+max_stack = 10
+weight = 0.5
+sell_value = 12

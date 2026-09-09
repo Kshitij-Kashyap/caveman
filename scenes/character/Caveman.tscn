@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/Caveman.gd" id="1_caveman"]
+[ext_resource type="PackedScene" path="res://scenes/character/CavemanModel.tscn" id="2_model"]
+[ext_resource type="Script" path="res://scripts/character/CharacterRagdoll.gd" id="3_ragdoll"]
+[ext_resource type="Mesh" path="res://assets/models/character/viewmodel_arm.obj" id="4_arm"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_fp_skin"]
+albedo_color = Color(0.76, 0.54, 0.38, 1)
+roughness = 0.85
+
+[node name="Caveman" type="Node3D"]
+script = ExtResource("1_caveman")
+
+[node name="CharacterVisual" type="Node3D" parent="."]
+
+[node name="CavemanModel" parent="CharacterVisual" instance=ExtResource("2_model")]
+
+[node name="FirstPersonVisual" type="Node3D" parent="."]
+position = Vector3(0.24, -0.22, -0.38)
+
+[node name="LeftArm" type="MeshInstance3D" parent="FirstPersonVisual"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, -0.02, 0.05)
+mesh = ExtResource("4_arm")
+surface_material_override/0 = SubResource("Mat_fp_skin")
+
+[node name="RightArm" type="MeshInstance3D" parent="FirstPersonVisual"]
+mesh = ExtResource("4_arm")
+surface_material_override/0 = SubResource("Mat_fp_skin")
+
+[node name="HeldItemSocket" type="Marker3D" parent="FirstPersonVisual"]
+position = Vector3(0.02, 0.05, -0.25)
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
+active = false
+
+[node name="RagdollComponent" type="Node3D" parent="."]
+script = ExtResource("3_ragdoll")

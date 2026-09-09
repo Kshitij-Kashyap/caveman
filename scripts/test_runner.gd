@@ -22,8 +22,8 @@ func _ready() -> void:
 	assert(loaded.skin_color.is_equal_approx(data.skin_color), "Loaded skin color should match saved")
 	print("  -> CharacterCustomizationData passed.")
 
-	# 2. Test CavemanModel (Rafael Rigged Character)
-	print("[2/10] Testing CavemanModel (Rafael Rigged Character)...")
+	# 2. Test CavemanModel (canonical modular Cave Raiders character)
+	print("[2/10] Testing CavemanModel (canonical modular character)...")
 	var model_scene := load("res://scenes/character/CavemanModel.tscn") as PackedScene
 	assert(model_scene != null, "CavemanModel scene should load")
 	var model := model_scene.instantiate() as CavemanModel
@@ -32,23 +32,15 @@ func _ready() -> void:
 	assert(model.torso != null, "Torso should be generated")
 	assert(model.head != null, "Head should be generated")
 	assert(model.mat_skin.albedo_color.is_equal_approx(data.skin_color), "Skin material color should match")
-	assert(model.use_rigged_character, "Should use rigged character by default")
-	assert(model.skeleton != null, "Skeleton3D must be loaded")
-	assert(model.skeleton.get_bone_count() == 52, "Skeleton3D must have 52 Mixamo bones")
-	assert(model.anim_player != null, "AnimationPlayer must exist")
-	assert(model.anim_player.has_animation("idle"), "Must have 'idle' animation")
-	assert(model.anim_player.has_animation("walk"), "Must have 'walk' animation")
-	assert(model.mat_rigged != null, "ShaderMaterial must exist for rigged character")
-	# Test animation switching
-	model.is_moving = true
-	model._process(0.016)
-	assert(model.anim_player.current_animation == "walk", "Walking state must play 'walk'")
-	model.is_moving = false
-	model._process(0.016)
-	assert(model.anim_player.current_animation == "idle", "Idle state must play 'idle'")
+	assert(not model.use_rigged_character, "The stylized modular character should be the default")
+	assert(model.stage_visuals != null, "Stage visual container must exist")
+	model.set_evolution_stage(5)
+	assert(model.stage_visuals.get_child_count() >= 4, "Stage 5 must add readable refined silhouette pieces")
+	model.set_expression("angry")
+	assert(model.head_pivot.get_node_or_null("ExpressionBrows") != null, "Expressions must be driven by simple face geometry")
 	var obj_mesh := load("res://assets/models/character/caveman.obj") as Mesh
 	assert(obj_mesh != null, "caveman.obj should load as Mesh")
-	print("  -> CavemanModel (Rafael Rigged Character) passed.")
+	print("  -> CavemanModel (canonical modular character) passed.")
 
 	# 3. Test CharacterPreview with sunny 3D camp scene
 	print("[3/10] Testing CharacterPreview with sunny 3D camp scene...")
@@ -441,10 +433,9 @@ func _ready() -> void:
 	var throw_ok := vm.throw_spear(func(): throw_launched[0] = true)
 	assert(throw_ok, "throw_spear() must execute from aim stance")
 
-	# CavemanModel dynamic spear throw action
-	assert(model.anim_player.has_animation("spear_throw"), "CavemanModel must have 'spear_throw' animation")
+	# Modular model retains a stable gameplay-facing action API even though its
+	# presentation animation is procedural until the authored lanky rig arrives.
 	model.play_action("spear_throw")
-	assert(model.anim_player.current_animation == "spear_throw", "CavemanModel must play 'spear_throw'")
 	print("  -> Spear Throwing & Ballistic Projectile System passed.")
 
 	# 18. Test Uneven Basecamp Terrain & Spear Target Testing Ground
@@ -563,10 +554,103 @@ func _ready() -> void:
 	sim_camp.queue_free()
 	print("  -> Solid TribeCamp Ground Physics passed (%d bodies firmly grounded, 0 void falls)." % grounded_props)
 
-	print("==================================================")
-	print("--- ALL 20 VERIFICATION TESTS PASSED! ---")
+	# 21. Test InventoryMenu (Tab grid, Use consumable, Drop loot)
+	print("[21/23] Testing InventoryMenu (grid, eat, drop)...")
+	var inv_menu := player.get_node_or_null("FirstPersonHUD/InventoryMenu")
+	assert(inv_menu != null, "Player must code-instance InventoryMenu for local authority")
+	inv_menu.open_menu()
+	assert(inv_menu.is_open(), "InventoryMenu must open")
+	assert(inv_menu.get_item_count() == player.inventory.get_all_items().size(), "Grid rows must match carried item types")
+	var had_wood: int = player.inventory.get_quantity("wood")
+	assert(had_wood > 0, "Test player should carry wood by now")
+	player.inventory.add_item("roast_meat", 1)
+	await get_tree().process_frame
+	assert(inv_menu.get_item_count() == player.inventory.get_all_items().size(), "Grid must refresh on pickup")
+	# Eat roast meat: wound then heal.
+	player.current_health = 50.0
+	inv_menu._select("roast_meat")
+	assert(inv_menu.use_selected(), "use_selected must eat roast meat")
+	assert(player.inventory.get_quantity("roast_meat") == 0, "Eaten meat must leave the pack")
+	assert(player.current_health > 50.0, "Eating roast meat must heal")
+	# Drop one wood: spawns a LootItem ahead and removes it from the pack.
+	inv_menu._select("wood")
+	var loot_before := get_tree().current_scene.find_children("LootItem*", "", true, false).size()
+	assert(inv_menu.drop_selected(), "drop_selected must toss a LootItem")
+	assert(player.inventory.get_quantity("wood") == had_wood - 1, "Dropped wood must leave the pack")
+	await get_tree().process_frame
+	var loot_after := get_tree().current_scene.find_children("LootItem*", "", true, false).size()
+	assert(loot_after == loot_before + 1, "Drop must spawn exactly one LootItem")
+	inv_menu.toggle()
+	assert(not inv_menu.is_open(), "Tab toggle must close the menu")
+	print("  -> InventoryMenu passed.")
+
+	# 22. Test CraftingMenu (stockpile recipes, grant, failure path)
+	print("[22/23] Testing CraftingMenu (recipes, stockpile, glow charge)...")
+	var craft_scene := load("res://scenes/ui/CraftingMenu.tscn") as PackedScene
+	assert(craft_scene != null, "CraftingMenu scene must load")
+	var craft_menu := craft_scene.instantiate()
+	add_child(craft_menu)
+	assert(craft_menu.get_recipe_count() == 3, "Must load 3 camp recipes")
+	var saved_stock: Dictionary = ProgressionManager.stored_resources.duplicate()
+	ProgressionManager.stored_resources = {"meat": 2, "wood": 3, "flint": 1, "crystal": 1}
+	craft_menu.open_for(player)
+	assert(craft_menu.is_open(), "CraftingMenu must open for the player")
+	var meat_had: int = player.inventory.get_quantity("roast_meat")
+	assert(craft_menu.craft_by_id("roast_meat"), "Roast meat craft must succeed when stocked")
+	assert(player.inventory.get_quantity("roast_meat") == meat_had + 1, "Crafted meat must reach the pack")
+	assert(int(ProgressionManager.stored_resources.get("meat", 0)) == 1, "Craft must consume stockpile meat")
+	# Glow charge refills a spent rock.
+	player.glow_system.current_rocks = 2
+	assert(craft_menu.craft_by_id("glow_charge"), "Glow charge must succeed when stocked")
+	assert(player.glow_system.current_rocks == 3, "Glow charge must restore one rock")
+	player.glow_system.current_rocks = GlowRockSystem.MAX_ROCKS
+	assert(not craft_menu.can_craft("glow_charge"), "Glow charge must refuse when rocks are full")
+	# Failure path: empty stockpile crafts nothing.
+	ProgressionManager.stored_resources = {}
+	assert(not craft_menu.craft_by_id("flint_spear"), "Craft must fail without materials")
+	craft_menu.close_menu()
+	assert(not craft_menu.is_open(), "CraftingMenu must close")
+	ProgressionManager.stored_resources = saved_stock
+	craft_menu.queue_free()
+	print("  -> CraftingMenu passed.")
+
+	# 23. Test MapMenu (regions, dungeon schematic, player marker)
+	print("[23/23] Testing MapMenu (regions + cave chart)...")
+	var map_menu := player.get_node_or_null("FirstPersonHUD/MapMenu")
+	assert(map_menu != null, "Player must code-instance MapMenu for local authority")
+	map_menu.open_menu()
+	assert(map_menu.is_open(), "MapMenu must open")
+	assert(map_menu.get_region_count() == 4, "Must list 4 tribe regions")
+	assert(map_menu.get_unlocked_count() >= 1, "At least shallow_caves must be unlocked")
+	assert("shallow_caves" in ProgressionManager.unlocked_regions, "shallow_caves must stay unlocked")
+	var chart := DungeonData.new()
+	var room_a := DungeonData.RoomData.new()
+	room_a.id = 0
+	room_a.type = DungeonData.RoomType.ENTRANCE
+	room_a.world_position = Vector3.ZERO
+	room_a.size = Vector2(12, 12)
+	var room_b := DungeonData.RoomData.new()
+	room_b.id = 1
+	room_b.type = DungeonData.RoomType.EXTRACTION
+	room_b.world_position = Vector3(16, 0, 0)
+	room_b.size = Vector2(12, 12)
+	chart.add_room(room_a)
+	chart.add_room(room_b)
+	var corr := DungeonData.CorridorData.new()
+	corr.from_room_id = 0
+	corr.to_room_id = 1
+	corr.start_pos = Vector3.ZERO
+	corr.end_pos = Vector3(16, 0, 0)
+	chart.add_corridor(corr)
+	chart.extraction_point = Vector3(16, 0, 0)
+	map_menu.set_test_data(chart)
+	var marker: Vector2 = map_menu.get_player_marker()
+	var expected := Vector2(player.global_position.x, player.global_position.z)
+	assert(marker.is_equal_approx(expected), "Player marker must track the local player")
+	map_menu.toggle()
+	assert(not map_menu.is_open(), "M toggle must close the map")
+	print("  -> MapMenu passed.")
 	print("==================================================")
 	get_tree().quit(0)
-
 
 

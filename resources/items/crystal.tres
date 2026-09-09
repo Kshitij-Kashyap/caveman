@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "crystal"
+item_name = "Glow Crystal"
+item_type = 0
+description = "A humming blue crystal. Grind it to recharge glow rocks."
+max_stack = 20
+weight = 0.6
+sell_value = 15

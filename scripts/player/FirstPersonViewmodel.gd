@@ -57,6 +57,7 @@ const TOOL_NAMES := {
 
 @export var default_pos: Vector3 = Vector3(0.24, -0.22, -0.38)
 @export var default_rot: Vector3 = Vector3(0.08, -0.12, 0.04)
+@export_range(1, 5) var evolution_stage: int = 1
 
 # ---------------------------------------------------------------------------
 # State
@@ -104,6 +105,7 @@ func _ready() -> void:
 	_rest_transform = transform
 	_apply_tool_visibility()
 	_update_tool_stats()
+	apply_evolution_stage(evolution_stage)
 
 	var pm := get_node_or_null("/root/ProgressionManager")
 	if pm:
@@ -290,6 +292,15 @@ func apply_weapon_tier(weapon_id: String, tier: int) -> void:
 			club_t4_mesh.visible = (tier == 4)
 		if current_tool == ToolType.CLUB:
 			_update_tool_stats()
+
+## First-person arms stay angular and slightly oversized at every stage. The
+## later stages become a little less chunky, never photorealistic FPS hands.
+func apply_evolution_stage(stage: int) -> void:
+	evolution_stage = clampi(stage, 1, 5)
+	if not arm_mesh:
+		return
+	var hand_scale := lerpf(1.12, 1.0, float(evolution_stage - 1) / 4.0)
+	arm_mesh.scale = Vector3(hand_scale, 1.0, hand_scale)
 
 func _on_weapon_upgraded(weapon_id: String, new_tier: int) -> void:
 	apply_weapon_tier(weapon_id, new_tier)

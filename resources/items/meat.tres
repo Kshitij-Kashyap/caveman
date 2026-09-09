@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "meat"
+item_name = "Raw Beast Meat"
+item_type = 0
+description = "Fresh raw meat carved from a fallen beast. Roast it at the campfire to make it safe and healing."
+max_stack = 20
+weight = 0.6
+sell_value = 6

@@ -1,0 +1,64 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/CharacterCustomizationTest.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/character/Caveman.tscn" id="2_cave"]
+
+[sub_resource type="PlaneMesh" id="GroundMesh"]
+size = Vector2(20, 20)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ground"]
+albedo_color = Color(0.4, 0.4, 0.42, 1)
+roughness = 0.95
+
+[sub_resource type="CylinderMesh" id="PedestalMesh"]
+top_radius = 0.85
+bottom_radius = 0.95
+height = 0.25
+radial_segments = 16
+
+[node name="CharacterCustomizationTest" type="Node3D"]
+script = ExtResource("1_test")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.286788, 0.496732, 0, 0.866025, 0.5, -0.573576, -0.409576, 0.709406, 0, 8, 0)
+light_energy = 1.3
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("GroundMesh")
+surface_material_override/0 = SubResource("Mat_ground")
+
+[node name="Pedestal" type="MeshInstance3D" parent="."]
+mesh = SubResource("PedestalMesh")
+
+[node name="ModelPivot" type="Node3D" parent="."]
+
+[node name="Caveman" parent="ModelPivot" instance=ExtResource("2_cave")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.96, 0.28, 0, -0.28, 0.96, 0, 1.4, 3.2)
+current = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 120.0
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel"]
+
+[node name="InfoLabel" type="Label" parent="UI/Panel/VBox"]
+text = "Customization test"
+
+[node name="SkinButton" type="Button" parent="UI/Panel/VBox"]
+text = "Cycle Skin (1)"
+
+[node name="HairButton" type="Button" parent="UI/Panel/VBox"]
+text = "Cycle Hair (2)"
+
+[node name="ClothingButton" type="Button" parent="UI/Panel/VBox"]
+text = "Cycle Clothing (3)"
+
+[node name="AccentButton" type="Button" parent="UI/Panel/VBox"]
+text = "Cycle Accent (4)"

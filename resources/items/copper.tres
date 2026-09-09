@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "copper"
+item_name = "Copper Nugget"
+item_type = 0
+description = "Soft orange metal ore. The tribe has not learned to smelt it yet, but traders value it."
+max_stack = 20
+weight = 1.0
+sell_value = 10

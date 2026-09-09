@@ -37,6 +37,7 @@ signal ragdoll_state_changed(is_ragdolling: bool)
 # Exports & Customization
 # ---------------------------------------------------------------------------
 @export var customization: CharacterCustomizationData = null
+@export_range(1, 5) var evolution_stage: int = 1
 
 # ---------------------------------------------------------------------------
 # Component Node References
@@ -112,8 +113,10 @@ func _ready() -> void:
 		customization = CharacterCustomizationData.load_or_create()
 	if caveman_model:
 		caveman_model.apply_customization(customization)
+		caveman_model.set_evolution_stage(evolution_stage)
 	if viewmodel:
 		viewmodel.apply_customization(customization)
+		viewmodel.apply_evolution_stage(evolution_stage)
 
 	# Link ragdoll proxy to visual model
 	if ragdoll and caveman_model:
@@ -151,6 +154,24 @@ func _ready() -> void:
 		)
 
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+	_setup_local_menus()
+
+# ---------------------------------------------------------------------------
+# Local HUD menus (Tab inventory, M cave chart) — local authority only.
+# Code-instanced so no Player.tscn edits are needed; remote players skip this.
+# ---------------------------------------------------------------------------
+func _setup_local_menus() -> void:
+	var inv_scene := load("res://scenes/ui/InventoryMenu.tscn") as PackedScene
+	if inv_scene:
+		var inv_menu := inv_scene.instantiate()
+		inv_menu.name = "InventoryMenu"
+		first_person_hud.add_child(inv_menu)
+	var map_scene := load("res://scenes/ui/MapMenu.tscn") as PackedScene
+	if map_scene:
+		var map_menu := map_scene.instantiate()
+		map_menu.name = "MapMenu"
+		first_person_hud.add_child(map_menu)
 
 func _setup_sync() -> void:
 	var cfg := SceneReplicationConfig.new()

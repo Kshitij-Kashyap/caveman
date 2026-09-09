@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/CraftingRecipe.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+recipe_id = "glow_charge"
+result_name = "Glow Rock Charge"
+result_item_id = ""
+result_qty = 1
+description = "Grind a glow crystal into a spare rock. Restores 1 throwable glow rock."
+cost = {"crystal": 1}
+special = "glow_charge"

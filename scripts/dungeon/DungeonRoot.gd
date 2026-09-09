@@ -14,6 +14,10 @@ extends Node3D
 
 var _dungeon_data: DungeonData = null
 
+## Public accessor for the world map schematic (MapMenu). Server-only data.
+func get_dungeon_data() -> DungeonData:
+	return _dungeon_data
+
 func _ready() -> void:
 	if not multiplayer.is_server():
 		## Clients wait for server to sync dungeon state

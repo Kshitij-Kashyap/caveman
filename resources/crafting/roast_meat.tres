@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/CraftingRecipe.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+recipe_id = "roast_meat"
+result_name = "Roast Meat"
+result_item_id = "roast_meat"
+result_qty = 1
+description = "Slow-roast raw beast meat over the fire. Heals 30 HP when eaten."
+cost = {"meat": 1, "wood": 1}
+special = ""

@@ -405,7 +405,7 @@ def build_leg(builder, side="left"):
 
 def build_full_caveman(out_dir):
     """Generates the full unified low-poly Caveman mesh."""
-    b = ObjMeshBuilder("HowToFishCaveman")
+    b = ObjMeshBuilder("CaveRaiderCaveman")
 
     # 1. Torso
     build_torso(b)

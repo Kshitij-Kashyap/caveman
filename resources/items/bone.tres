@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ItemDefinition.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = "bone"
+item_name = "Old Bone"
+item_type = 0
+description = "Brittle cave bone. Useful for handles, spikes and tribal charms."
+max_stack = 20
+weight = 0.5
+sell_value = 4

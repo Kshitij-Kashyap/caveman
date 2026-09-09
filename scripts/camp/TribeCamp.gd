@@ -12,6 +12,8 @@ extends Node3D
 @onready var stations_parent: Node3D = $Stations
 @onready var props_parent: Node3D = $Props
 
+var _crafting_menu: CraftingMenu = null
+
 # ---------------------------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------------------------
@@ -26,6 +28,7 @@ func _ready() -> void:
 			QuestManager.accept_quest(default_quest)
 
 	_setup_stations()
+	_setup_crafting_menu()
 	_spawn_physics_props()
 
 # ---------------------------------------------------------------------------
@@ -52,7 +55,7 @@ func _setup_stations() -> void:
 		if ic:
 			ic.interacted.connect(func(pl): _handle_station_interaction(ic.interactable_id, pl))
 
-func _handle_station_interaction(station_id: String, _player: Player) -> void:
+func _handle_station_interaction(station_id: String, player: Player) -> void:
 	AudioManager.play_sfx(AudioManager.SFX.UI_CLICK)
 
 	match station_id:
@@ -81,10 +84,13 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 						QuestManager.accept_quest(default_quest)
 			)
 		"crafting_fire":
-			camp_hud.show_modal(
-				"CRAFTING FIRE",
-				"The campfire crackles with bright orange embers.\nRoast raw beast meats to heal wounds, and craft sturdy stone tools and spears."
-			)
+			if _crafting_menu:
+				_crafting_menu.open_for(player)
+			else:
+				camp_hud.show_modal(
+					"CRAFTING FIRE",
+					"The campfire crackles with bright orange embers.\nRoast raw beast meats to heal wounds, and craft sturdy stone tools and spears."
+				)
 		"storage_chest":
 			var stock_text := "Tribe Stockpile:\n"
 			if ProgressionManager.stored_resources.is_empty():
@@ -146,6 +152,12 @@ func _handle_station_interaction(station_id: String, _player: Player) -> void:
 				"GREAT BONFIRE",
 				"The blazing heart of the tribe. Flames rise high into the clear blue sky, warming all warriors preparing for the raid."
 			)
+
+func _setup_crafting_menu() -> void:
+	var scene := load("res://scenes/ui/CraftingMenu.tscn") as PackedScene
+	if scene:
+		_crafting_menu = scene.instantiate() as CraftingMenu
+		add_child(_crafting_menu)
 
 func _start_expedition() -> void:
 	if not NetworkManager.is_connected_to_session():

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CraftingRecipe" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/crafting/CraftingRecipe.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+recipe_id = "flint_spear"
+result_name = "Flint Spear"
+result_item_id = "flint_spear"
+result_qty = 1
+description = "Lash a sharp flint head to a hardwood shaft. Throw it with RMB aim."
+cost = {"wood": 2, "flint": 1}
+special = ""
